@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'idea.dart';
+import 'idea_card.dart';
 
 void main() {
   runApp(const IdeaBankApp());
@@ -18,13 +20,40 @@ class IdeaBankApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const HomePage(),
+      home:  HomePage(),
     );
   }
 }
 
 class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+   HomePage({super.key});
+
+  final List<Idea> ideas =[
+    Idea(
+      title: 'Smart Study Planner',
+      description:
+          'A platform that helps students plan their study schedule and track their learning progress.',
+      category: 'Education',
+      author: 'Rahul',
+      likes: 18,
+    ),
+    Idea(
+      title: 'Campus Carpool',
+      description:
+          'A student carpool system that helps students share rides and reduce transportation costs.',
+      category: 'Transportation',
+      author: 'Ananya',
+      likes: 24,
+    ),
+    Idea(
+      title: 'Local Skill Exchange',
+      description:
+          'A platform where students can exchange useful skills and learn from one another.',
+      category: 'Community',
+      author: 'Priya',
+      likes: 31,
+    ),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -32,15 +61,18 @@ class HomePage extends StatelessWidget {
       appBar: AppBar(
         title: const Text(
           'IdeaBank',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
+
       body: Padding(
         padding: const EdgeInsets.all(20),
+
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
 
-          // THIS is the children section
           children: [
             const Text(
               'Discover Ideas',
@@ -65,12 +97,15 @@ class HomePage extends StatelessWidget {
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
+
               decoration: BoxDecoration(
                 color: Colors.indigo,
                 borderRadius: BorderRadius.circular(20),
               ),
+
               child: const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+
                 children: [
                   Text(
                     'Welcome to IdeaBank!',
@@ -91,6 +126,30 @@ class HomePage extends StatelessWidget {
                     ),
                   ),
                 ],
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            const Text(
+              'Trending Ideas',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            Expanded(
+              child: ListView.builder(
+                itemCount: ideas.length,
+
+                itemBuilder: (context, index) {
+                  return IdeaCard(
+                    idea: ideas[index],
+                  );
+                },
               ),
             ),
           ],
