@@ -20,15 +20,22 @@ class IdeaBankApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home:  HomePage(),
+      home: const MainScreen(),
     );
   }
 }
 
-class HomePage extends StatelessWidget {
-   HomePage({super.key});
+class MainScreen extends StatefulWidget {
+  const MainScreen({super.key});
 
-  final List<Idea> ideas =[
+  @override
+  State<MainScreen> createState() => _MainScreenState();
+}
+
+class _MainScreenState extends State<MainScreen> {
+  int selectedIndex = 0;
+
+  final List<Idea> ideas = [
     Idea(
       title: 'Smart Study Planner',
       description:
@@ -54,6 +61,62 @@ class HomePage extends StatelessWidget {
       likes: 31,
     ),
   ];
+
+  @override
+  Widget build(BuildContext context) {
+    final pages = [
+      HomePage(ideas: ideas),
+      ExplorePage(ideas: ideas),
+      const PostPage(),
+      const ProfilePage(),
+    ];
+
+    return Scaffold(
+      body: pages[selectedIndex],
+
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: selectedIndex,
+
+        onDestinationSelected: (index) {
+          setState(() {
+            selectedIndex = index;
+          });
+        },
+
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.home_outlined),
+            selectedIcon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.explore_outlined),
+            selectedIcon: Icon(Icons.explore),
+            label: 'Explore',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.add_circle_outline),
+            selectedIcon: Icon(Icons.add_circle),
+            label: 'Post',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.person_outline),
+            selectedIcon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class HomePage extends StatelessWidget {
+  final List<Idea> ideas;
+
+  const HomePage({
+    super.key,
+    required this.ideas,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -153,6 +216,82 @@ class HomePage extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class ExplorePage extends StatelessWidget {
+  final List<Idea> ideas;
+
+  const ExplorePage({
+    super.key,
+    required this.ideas,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Explore Ideas'),
+      ),
+
+      body: ListView.builder(
+        padding: const EdgeInsets.all(16),
+
+        itemCount: ideas.length,
+
+        itemBuilder: (context, index) {
+          return IdeaCard(
+            idea: ideas[index],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class PostPage extends StatelessWidget {
+  const PostPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Post an Idea'),
+      ),
+
+      body: const Center(
+        child: Text(
+          'Post your idea here',
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class ProfilePage extends StatelessWidget {
+  const ProfilePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Profile'),
+      ),
+
+      body: const Center(
+        child: Text(
+          'My Profile',
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
     );
