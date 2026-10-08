@@ -13,20 +13,48 @@ class IdeaBankApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'IdeaBank',
       theme: ThemeData(
-        primarySwatch: Colors.indigo,
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
+        useMaterial3: true,
       ),
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('IdeaBank'),
+      home: const HomePage(),
+    );
+  }
+}
+
+class HomePage extends StatelessWidget {
+  const HomePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          'IdeaBank',
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        body: const Center(
-          child: Text(
-            'Welcome to IdeaBank',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
+        centerTitle: false,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Discover Ideas',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
+            const SizedBox(height: 8),
+            Text(
+              'Share, explore and collaborate on innovative ideas.',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey.shade700,
+              ),
+            ),
+          ],
         ),
       ),
     );
