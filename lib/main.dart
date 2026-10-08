@@ -202,7 +202,7 @@ class HomePage extends StatelessWidget {
   }
 }
 
-class ExplorePage extends StatelessWidget {
+class ExplorePage extends StatefulWidget {
   final List<Idea> ideas;
 
   const ExplorePage({
@@ -211,7 +211,20 @@ class ExplorePage extends StatelessWidget {
   });
 
   @override
+  State<ExplorePage> createState() => _ExplorePageState();
+}
+
+class _ExplorePageState extends State<ExplorePage> {
+  String searchText = '';
+
+  @override
   Widget build(BuildContext context) {
+    final List<Idea> filteredIdeas = widget.ideas.where((idea) {
+      return idea.title
+          .toLowerCase()
+          .contains(searchText.toLowerCase());
+    }).toList();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -221,14 +234,49 @@ class ExplorePage extends StatelessWidget {
           ),
         ),
       ),
-      body: ListView.builder(
+      body: Padding(
         padding: const EdgeInsets.all(16),
-        itemCount: ideas.length,
-        itemBuilder: (context, index) {
-          return IdeaCard(
-            idea: ideas[index],
-          );
-        },
+        child: Column(
+          children: [
+            TextField(
+              decoration: InputDecoration(
+                hintText: 'Search ideas...',
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  searchText = value;
+                });
+              },
+            ),
+
+            const SizedBox(height: 16),
+
+            Expanded(
+              child: filteredIdeas.isEmpty
+                  ? const Center(
+                      child: Text(
+                        'No ideas found',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    )
+                  : ListView.builder(
+                      itemCount: filteredIdeas.length,
+                      itemBuilder: (context, index) {
+                        return IdeaCard(
+                          idea: filteredIdeas[index],
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
       ),
     );
   }
