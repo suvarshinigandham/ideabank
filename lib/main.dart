@@ -73,16 +73,13 @@ class _MainScreenState extends State<MainScreen> {
 
     return Scaffold(
       body: pages[selectedIndex],
-
       bottomNavigationBar: NavigationBar(
         selectedIndex: selectedIndex,
-
         onDestinationSelected: (index) {
           setState(() {
             selectedIndex = index;
           });
         },
-
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.home_outlined),
@@ -129,13 +126,10 @@ class HomePage extends StatelessWidget {
           ),
         ),
       ),
-
       body: Padding(
         padding: const EdgeInsets.all(20),
-
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-
           children: [
             const Text(
               'Discover Ideas',
@@ -144,9 +138,7 @@ class HomePage extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
-
             const SizedBox(height: 8),
-
             Text(
               'Share, explore and collaborate on innovative ideas.',
               style: TextStyle(
@@ -154,21 +146,16 @@ class HomePage extends StatelessWidget {
                 color: Colors.grey.shade700,
               ),
             ),
-
             const SizedBox(height: 24),
-
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
-
               decoration: BoxDecoration(
                 color: Colors.indigo,
                 borderRadius: BorderRadius.circular(20),
               ),
-
               child: const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-
                 children: [
                   Text(
                     'Welcome to IdeaBank!',
@@ -178,9 +165,7 @@ class HomePage extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-
                   SizedBox(height: 8),
-
                   Text(
                     'Turn your ideas into opportunities.',
                     style: TextStyle(
@@ -191,9 +176,7 @@ class HomePage extends StatelessWidget {
                 ],
               ),
             ),
-
             const SizedBox(height: 24),
-
             const Text(
               'Trending Ideas',
               style: TextStyle(
@@ -201,13 +184,10 @@ class HomePage extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
-
             const SizedBox(height: 12),
-
             Expanded(
               child: ListView.builder(
                 itemCount: ideas.length,
-
                 itemBuilder: (context, index) {
                   return IdeaCard(
                     idea: ideas[index],
@@ -234,14 +214,16 @@ class ExplorePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Explore Ideas'),
+        title: const Text(
+          'Explore Ideas',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
-
       body: ListView.builder(
         padding: const EdgeInsets.all(16),
-
         itemCount: ideas.length,
-
         itemBuilder: (context, index) {
           return IdeaCard(
             idea: ideas[index],
@@ -261,7 +243,6 @@ class PostPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Post an Idea'),
       ),
-
       body: const Center(
         child: Text(
           'Post your idea here',
@@ -284,7 +265,6 @@ class ProfilePage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Profile'),
       ),
-
       body: const Center(
         child: Text(
           'My Profile',
