@@ -16,18 +16,20 @@ class IdeaBankApp extends StatelessWidget {
       title: 'IdeaBank',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
         useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
         scaffoldBackgroundColor: const Color(0xFFF7F8FC),
         appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.indigo,
-          foregroundColor: Colors.white,
           centerTitle: false,
+          backgroundColor: Color(0xFFF7F8FC),
+          foregroundColor: Colors.indigo,
         ),
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: Colors.white,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        cardTheme: CardThemeData(
+          color: Colors.white,
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
         ),
       ),
       home: const MainScreen(),
@@ -49,28 +51,28 @@ class _MainScreenState extends State<MainScreen> {
     Idea(
       title: 'Smart Study Planner',
       description:
-          'An intelligent study planner that helps students '
-          'organize subjects, manage time, and track study goals.',
+          'An intelligent planner that helps students organize '
+          'their timetable, track tasks, and manage study time.',
       category: 'Education',
-      author: 'Suvarshini',
+      author: 'IdeaBank Team',
       likes: 18,
     ),
     Idea(
       title: 'Campus Carpool',
       description:
-          'A platform that connects students travelling in '
-          'the same direction to share rides and reduce costs.',
-      category: 'Transportation',
-      author: 'Rahul',
+          'A platform that connects students travelling in the '
+          'same direction to share rides and reduce travel costs.',
+      category: 'Transport',
+      author: 'IdeaBank Team',
       likes: 24,
     ),
     Idea(
       title: 'Local Skill Exchange',
       description:
-          'A community where students exchange skills such as '
-          'coding, design, communication, and project building.',
+          'A community where people exchange skills, teach '
+          'each other, and collaborate on useful projects.',
       category: 'Community',
-      author: 'Ananya',
+      author: 'IdeaBank Team',
       likes: 31,
     ),
   ];
@@ -114,7 +116,7 @@ class _MainScreenState extends State<MainScreen> {
           NavigationDestination(
             icon: Icon(Icons.add_circle_outline),
             selectedIcon: Icon(Icons.add_circle),
-            label: 'Post',
+            label: 'Post Idea',
           ),
           NavigationDestination(
             icon: Icon(Icons.person_outline),
@@ -127,6 +129,8 @@ class _MainScreenState extends State<MainScreen> {
   }
 }
 
+// HOME PAGE
+
 class HomePage extends StatelessWidget {
   final List<Idea> ideas;
 
@@ -136,24 +140,13 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'IdeaBank',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        title: const Row(
+          children: [
+            Icon(Icons.lightbulb, color: Colors.indigo),
+            SizedBox(width: 8),
+            Text('IdeaBank', style: TextStyle(fontWeight: FontWeight.bold)),
+          ],
         ),
-        actions: [
-          IconButton(
-            tooltip: 'Explore ideas',
-            onPressed: () {
-              // The Explore tab is available in bottom navigation.
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Explore ideas using the Explore tab.'),
-                ),
-              );
-            },
-            icon: const Icon(Icons.lightbulb_outline),
-          ),
-        ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -162,7 +155,7 @@ class HomePage extends StatelessWidget {
             padding: const EdgeInsets.all(22),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Colors.indigo, Color(0xFF7986CB)],
+                colors: [Color(0xFF3949AB), Color(0xFF7986CB)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -171,10 +164,10 @@ class HomePage extends StatelessWidget {
             child: const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.lightbulb, color: Colors.white, size: 38),
+                Icon(Icons.lightbulb_outline, color: Colors.white, size: 40),
                 SizedBox(height: 12),
                 Text(
-                  'Ideas can change the world!',
+                  'Ideas become innovation!',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 23,
@@ -183,8 +176,8 @@ class HomePage extends StatelessWidget {
                 ),
                 SizedBox(height: 8),
                 Text(
-                  'Share your ideas, discover inspiration, '
-                  'and build something amazing together.',
+                  'Share your ideas, discover new possibilities, '
+                  'and collaborate with creative minds.',
                   style: TextStyle(color: Colors.white, fontSize: 14),
                 ),
               ],
@@ -192,14 +185,16 @@ class HomePage extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Expanded(
-                child: Text(
-                  'Trending Ideas',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                ),
+              const Text(
+                'Discover Ideas',
+                style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold),
               ),
-              Text('${ideas.length} ideas'),
+              Text(
+                '${ideas.length} ideas',
+                style: const TextStyle(color: Colors.indigo),
+              ),
             ],
           ),
           const SizedBox(height: 8),
@@ -208,12 +203,14 @@ class HomePage extends StatelessWidget {
               message: 'No ideas yet. Be the first to share one!',
             )
           else
-            ...ideas.map((idea) => IdeaCard(key: ValueKey(idea), idea: idea)),
+            ...ideas.map((idea) => IdeaCard(key: ObjectKey(idea), idea: idea)),
         ],
       ),
     );
   }
 }
+
+// EXPLORE PAGE WITH SEARCH AND CATEGORY FILTERS
 
 class ExplorePage extends StatefulWidget {
   final List<Idea> ideas;
@@ -225,7 +222,9 @@ class ExplorePage extends StatefulWidget {
 }
 
 class _ExplorePageState extends State<ExplorePage> {
-  final searchController = TextEditingController();
+  final TextEditingController searchController = TextEditingController();
+
+  String selectedCategory = 'All';
 
   @override
   void dispose() {
@@ -235,56 +234,139 @@ class _ExplorePageState extends State<ExplorePage> {
 
   @override
   Widget build(BuildContext context) {
+    final categories = <String>[
+      'All',
+      ...widget.ideas
+          .map((idea) => idea.category)
+          .where((category) => category.trim().isNotEmpty)
+          .toSet()
+          .toList()
+        ..sort(),
+    ];
+
     final query = searchController.text.trim().toLowerCase();
 
     final filteredIdeas = widget.ideas.where((idea) {
-      return idea.title.toLowerCase().contains(query) ||
+      final matchesSearch =
+          idea.title.toLowerCase().contains(query) ||
           idea.description.toLowerCase().contains(query) ||
           idea.category.toLowerCase().contains(query) ||
           idea.author.toLowerCase().contains(query);
+
+      final matchesCategory =
+          selectedCategory == 'All' || idea.category == selectedCategory;
+
+      return matchesSearch && matchesCategory;
     }).toList();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Explore Ideas')),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: TextField(
+      appBar: AppBar(
+        title: const Text(
+          'Explore Ideas',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextField(
               controller: searchController,
               onChanged: (_) => setState(() {}),
               decoration: InputDecoration(
-                hintText: 'Search ideas, categories, or authors',
+                hintText: 'Search ideas, topics, or authors...',
                 prefixIcon: const Icon(Icons.search),
-                suffixIcon: searchController.text.isEmpty
-                    ? null
-                    : IconButton(
-                        onPressed: () {
-                          searchController.clear();
-                          setState(() {});
-                        },
-                        icon: const Icon(Icons.clear),
-                      ),
+                suffixIcon: IconButton(
+                  tooltip: 'Clear search',
+                  icon: const Icon(Icons.clear),
+                  onPressed: () {
+                    searchController.clear();
+                    setState(() {});
+                  },
+                ),
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: BorderSide.none,
+                ),
               ),
             ),
-          ),
-          Expanded(
-            child: filteredIdeas.isEmpty
-                ? const EmptyIdeasMessage(message: 'No matching ideas found.')
-                : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: filteredIdeas.length,
-                    itemBuilder: (context, index) {
-                      final idea = filteredIdeas[index];
-                      return IdeaCard(key: ValueKey(idea), idea: idea);
+            const SizedBox(height: 20),
+            const Text(
+              'Filter by category',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+            SizedBox(
+              height: 42,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: categories.length,
+                separatorBuilder: (context, index) => const SizedBox(width: 8),
+                itemBuilder: (context, index) {
+                  final category = categories[index];
+
+                  return ChoiceChip(
+                    label: Text(category),
+                    selected: selectedCategory == category,
+                    onSelected: (_) {
+                      setState(() {
+                        selectedCategory = category;
+                      });
                     },
-                  ),
-          ),
-        ],
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              '${filteredIdeas.length} '
+              'idea${filteredIdeas.length == 1 ? '' : 's'} found',
+              style: TextStyle(
+                color: Colors.grey.shade700,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Expanded(
+              child: filteredIdeas.isEmpty
+                  ? const Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.search_off, size: 56, color: Colors.grey),
+                          SizedBox(height: 12),
+                          Text(
+                            'No matching ideas found',
+                            style: TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(height: 6),
+                          Text('Try another category or search term.'),
+                        ],
+                      ),
+                    )
+                  : ListView.builder(
+                      itemCount: filteredIdeas.length,
+                      itemBuilder: (context, index) {
+                        final idea = filteredIdeas[index];
+
+                        return IdeaCard(key: ObjectKey(idea), idea: idea);
+                      },
+                    ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
+
+// POST IDEA PAGE
 
 class PostPage extends StatefulWidget {
   final ValueChanged<Idea> onSubmit;
@@ -301,7 +383,17 @@ class _PostPageState extends State<PostPage> {
   final descriptionController = TextEditingController();
   final authorController = TextEditingController();
 
-  String category = 'Education';
+  final List<String> categories = [
+    'Education',
+    'Technology',
+    'Transport',
+    'Community',
+    'Health',
+    'Environment',
+    'Other',
+  ];
+
+  String selectedCategory = 'Education';
 
   @override
   void dispose() {
@@ -311,149 +403,157 @@ class _PostPageState extends State<PostPage> {
     super.dispose();
   }
 
-  void publishIdea() {
+  void submitIdea() {
     if (!formKey.currentState!.validate()) {
       return;
     }
 
-    final idea = Idea(
+    final newIdea = Idea(
       title: titleController.text.trim(),
       description: descriptionController.text.trim(),
-      category: category,
+      category: selectedCategory,
       author: authorController.text.trim(),
+      likes: 0,
     );
 
-    widget.onSubmit(idea);
+    widget.onSubmit(newIdea);
 
     titleController.clear();
     descriptionController.clear();
     authorController.clear();
 
     setState(() {
-      category = 'Education';
+      selectedCategory = 'Education';
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Idea published successfully!')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Your idea has been posted!')));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Post an Idea')),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 650),
-          child: Form(
-            key: formKey,
-            child: ListView(
-              padding: const EdgeInsets.all(20),
-              children: [
-                const Icon(Icons.lightbulb, color: Colors.indigo, size: 60),
-                const SizedBox(height: 12),
-                const Text(
-                  'Share Your Next Big Idea!',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+      appBar: AppBar(
+        title: const Text(
+          'Share an Idea',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Form(
+          key: formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Have a great idea?',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Share it with the community and inspire others.',
+                style: TextStyle(color: Colors.grey.shade700),
+              ),
+              const SizedBox(height: 24),
+              TextFormField(
+                controller: titleController,
+                maxLength: 80,
+                decoration: const InputDecoration(
+                  labelText: 'Idea title',
+                  hintText: 'Give your idea a name',
+                  prefixIcon: Icon(Icons.lightbulb_outline),
+                  border: OutlineInputBorder(),
                 ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Inspire others by sharing your creativity.',
-                  textAlign: TextAlign.center,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Please enter an idea title';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: descriptionController,
+                maxLines: 5,
+                maxLength: 500,
+                decoration: const InputDecoration(
+                  labelText: 'Description',
+                  hintText: 'Explain your idea...',
+                  alignLabelWithHint: true,
+                  prefixIcon: Icon(Icons.description_outlined),
+                  border: OutlineInputBorder(),
                 ),
-                const SizedBox(height: 24),
-                TextFormField(
-                  controller: titleController,
-                  maxLength: 80,
-                  decoration: const InputDecoration(
-                    labelText: 'Idea title',
-                    hintText: 'Enter your idea title',
-                    prefixIcon: Icon(Icons.title),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Please enter an idea title';
-                    }
-                    return null;
-                  },
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Please describe your idea';
+                  }
+                  if (value.trim().length < 10) {
+                    return 'Description must be at least 10 characters';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                initialValue: selectedCategory,
+                decoration: const InputDecoration(
+                  labelText: 'Category',
+                  prefixIcon: Icon(Icons.category_outlined),
+                  border: OutlineInputBorder(),
                 ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: descriptionController,
-                  maxLines: 4,
-                  maxLength: 500,
-                  decoration: const InputDecoration(
-                    labelText: 'Description',
-                    hintText: 'Describe your idea...',
-                    alignLabelWithHint: true,
-                    prefixIcon: Icon(Icons.description_outlined),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Please enter a description';
-                    }
-                    return null;
-                  },
+                items: categories.map((category) {
+                  return DropdownMenuItem<String>(
+                    value: category,
+                    child: Text(category),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() {
+                      selectedCategory = value;
+                    });
+                  }
+                },
+              ),
+              const SizedBox(height: 18),
+              TextFormField(
+                controller: authorController,
+                decoration: const InputDecoration(
+                  labelText: 'Your name',
+                  hintText: 'Enter your name',
+                  prefixIcon: Icon(Icons.person_outline),
+                  border: OutlineInputBorder(),
                 ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  initialValue: category,
-                  decoration: const InputDecoration(
-                    labelText: 'Category',
-                    prefixIcon: Icon(Icons.category_outlined),
-                  ),
-                  items:
-                      const [
-                        'Education',
-                        'Technology',
-                        'Transportation',
-                        'Community',
-                        'Health',
-                        'Environment',
-                      ].map((item) {
-                        return DropdownMenuItem<String>(
-                          value: item,
-                          child: Text(item),
-                        );
-                      }).toList(),
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() => category = value);
-                    }
-                  },
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: authorController,
-                  decoration: const InputDecoration(
-                    labelText: 'Your name',
-                    prefixIcon: Icon(Icons.person_outline),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Please enter your name';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 24),
-                FilledButton.icon(
-                  onPressed: publishIdea,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Please enter your name';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: submitIdea,
                   icon: const Icon(Icons.send),
-                  label: const Padding(
-                    padding: EdgeInsets.all(14),
-                    child: Text('Publish Idea'),
+                  label: const Text('Publish Idea'),
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 }
+
+// PROFILE PAGE
 
 class ProfilePage extends StatelessWidget {
   final List<Idea> ideas;
@@ -462,62 +562,86 @@ class ProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final totalLikes = ideas.fold<int>(0, (sum, idea) => sum + idea.likes);
+    final totalLikes = ideas.fold<int>(0, (total, idea) => total + idea.likes);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('My Profile')),
+      appBar: AppBar(
+        title: const Text(
+          'My Profile',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+      ),
       body: ListView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(20),
         children: [
+          const SizedBox(height: 12),
           const CircleAvatar(
             radius: 48,
-            backgroundColor: Colors.indigo,
-            child: Icon(Icons.person, color: Colors.white, size: 55),
+            backgroundColor: Color(0xFFE8EAF6),
+            child: Icon(Icons.person, size: 55, color: Colors.indigo),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
           const Text(
             'IdeaBank Member',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 23, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 6),
-          const Text('Think. Share. Collaborate.', textAlign: TextAlign.center),
+          Text(
+            'Sharing ideas. Building possibilities.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.grey.shade700),
+          ),
           const SizedBox(height: 28),
           Row(
             children: [
               Expanded(
-                child: _ProfileStat(label: 'Ideas', value: '${ideas.length}'),
+                child: _ProfileStat(
+                  icon: Icons.lightbulb_outline,
+                  label: 'Ideas',
+                  value: '${ideas.length}',
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: _ProfileStat(label: 'Total Likes', value: '$totalLikes'),
+                child: _ProfileStat(
+                  icon: Icons.favorite_outline,
+                  label: 'Total likes',
+                  value: '$totalLikes',
+                ),
               ),
             ],
           ),
           const SizedBox(height: 28),
           const Text(
-            'About IdeaBank',
-            style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold),
+            'My Shared Ideas',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'IdeaBank is a space to share creative ideas, '
-            'discover solutions, and connect with people '
-            'who want to make a difference.',
-          ),
-          const SizedBox(height: 24),
-          const ListTile(
-            leading: Icon(Icons.lightbulb_outline),
-            title: Text('Share creative ideas'),
-          ),
-          const ListTile(
-            leading: Icon(Icons.groups_outlined),
-            title: Text('Connect with innovators'),
-          ),
-          const ListTile(
-            leading: Icon(Icons.favorite_outline),
-            title: Text('Support community ideas'),
-          ),
+          if (ideas.isEmpty)
+            const EmptyIdeasMessage(
+              message: 'Your shared ideas will appear here.',
+            )
+          else
+            ...ideas.map(
+              (idea) => ListTile(
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 4,
+                ),
+                leading: const CircleAvatar(
+                  backgroundColor: Color(0xFFE8EAF6),
+                  child: Icon(Icons.lightbulb_outline, color: Colors.indigo),
+                ),
+                title: Text(
+                  idea.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                subtitle: Text(idea.category),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+              ),
+            ),
         ],
       ),
     );
@@ -525,27 +649,30 @@ class ProfilePage extends StatelessWidget {
 }
 
 class _ProfileStat extends StatelessWidget {
+  final IconData icon;
   final String label;
   final String value;
 
-  const _ProfileStat({required this.label, required this.value});
+  const _ProfileStat({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(18),
+        padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 8),
         child: Column(
           children: [
+            Icon(icon, color: Colors.indigo, size: 30),
+            const SizedBox(height: 10),
             Text(
               value,
-              style: const TextStyle(
-                fontSize: 25,
-                fontWeight: FontWeight.bold,
-                color: Colors.indigo,
-              ),
+              style: const TextStyle(fontSize: 23, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 4),
             Text(label),
           ],
         ),
@@ -561,17 +688,18 @@ class EmptyIdeasMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(30),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.search_off, size: 50, color: Colors.grey),
-            const SizedBox(height: 12),
-            Text(message, textAlign: TextAlign.center),
-          ],
-        ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 36),
+      child: Column(
+        children: [
+          const Icon(Icons.lightbulb_outline, size: 48, color: Colors.grey),
+          const SizedBox(height: 12),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.grey.shade700),
+          ),
+        ],
       ),
     );
   }
