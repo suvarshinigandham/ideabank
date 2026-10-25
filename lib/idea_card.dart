@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'idea.dart';
 
-class IdeaCard extends StatelessWidget {
+class IdeaCard extends StatefulWidget {
   final Idea idea;
 
   const IdeaCard({
@@ -10,7 +10,36 @@ class IdeaCard extends StatelessWidget {
     required this.idea,
   });
 
-  void _showDetails(BuildContext context) {
+  @override
+  State<IdeaCard> createState() => _IdeaCardState();
+}
+
+class _IdeaCardState extends State<IdeaCard> {
+  late int currentLikes;
+  late bool isLiked;
+
+  @override
+  void initState() {
+    super.initState();
+    currentLikes = widget.idea.likes;
+    isLiked = widget.idea.liked;
+  }
+
+  void toggleLike() {
+    setState(() {
+      if (isLiked) {
+        currentLikes--;
+        isLiked = false;
+      } else {
+        currentLikes++;
+        isLiked = true;
+      }
+    });
+  }
+
+  void showDetails() {
+    final idea = widget.idea;
+
     showDialog(
       context: context,
       builder: (context) {
@@ -21,38 +50,23 @@ class IdeaCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  idea.description,
-                  style: const TextStyle(fontSize: 15),
-                ),
+                Text(idea.description),
                 const SizedBox(height: 16),
                 Chip(
-                  avatar: const Icon(
-                    Icons.category,
-                    size: 18,
-                  ),
+                  avatar: const Icon(Icons.category, size: 18),
                   label: Text(idea.category),
                 ),
                 const SizedBox(height: 8),
-                Row(
-                  children: [
-                    const Icon(Icons.person_outline, size: 20),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text('Created by ${idea.author}'),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
+                Text('Created by ${idea.author}'),
+                const SizedBox(height: 8),
                 Row(
                   children: [
                     const Icon(
                       Icons.favorite,
                       color: Colors.red,
-                      size: 20,
                     ),
                     const SizedBox(width: 8),
-                    Text('${idea.likes} likes'),
+                    Text('$currentLikes likes'),
                   ],
                 ),
               ],
@@ -71,6 +85,8 @@ class IdeaCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final idea = widget.idea;
+
     return Card(
       margin: const EdgeInsets.symmetric(
         horizontal: 4,
@@ -80,16 +96,14 @@ class IdeaCard extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: () => _showDetails(context),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            InkWell(
+              onTap: showDetails,
+              child: Row(
                 children: [
                   const Icon(
                     Icons.lightbulb_outline,
@@ -113,51 +127,54 @@ class IdeaCard extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 10),
-              Text(
-                idea.description,
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 14),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Flexible(
-                    child: Chip(
-                      label: Text(idea.category),
-                      visualDensity: VisualDensity.compact,
-                    ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              idea.description,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Flexible(
+                  child: Chip(
+                    label: Text(idea.category),
+                    visualDensity: VisualDensity.compact,
                   ),
-                  const Spacer(),
-                  const Icon(
-                    Icons.favorite_border,
-                    color: Colors.red,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 5),
-                  Text('${idea.likes}'),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'By ${idea.author}',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Colors.grey.shade600,
                 ),
+                const Spacer(),
+                IconButton(
+                  tooltip: isLiked ? 'Unlike idea' : 'Like idea',
+                  onPressed: toggleLike,
+                  icon: Icon(
+                    isLiked ? Icons.favorite : Icons.favorite_border,
+                    color: isLiked ? Colors.red : Colors.grey,
+                  ),
+                ),
+                Text('$currentLikes'),
+              ],
+            ),
+            Text(
+              'By ${idea.author}',
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.grey.shade600,
               ),
-              const SizedBox(height: 8),
-              const Text(
+            ),
+            const SizedBox(height: 8),
+            InkWell(
+              onTap: showDetails,
+              child: const Text(
                 'Tap to view full details',
                 style: TextStyle(
-                  fontSize: 12,
                   color: Colors.indigo,
+                  fontSize: 12,
                   fontWeight: FontWeight.w500,
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
