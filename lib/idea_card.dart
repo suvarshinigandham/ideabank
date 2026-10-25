@@ -12,187 +12,243 @@ class IdeaCard extends StatefulWidget {
 }
 
 class _IdeaCardState extends State<IdeaCard> {
-  late int currentLikes;
-  late bool isLiked;
-  late bool isSaved;
+  final TextEditingController commentController = TextEditingController();
 
   @override
-  void initState() {
-    super.initState();
-    currentLikes = widget.idea.likes;
-    isLiked = widget.idea.liked;
-    isSaved = widget.idea.saved;
+  void dispose() {
+    commentController.dispose();
+    super.dispose();
   }
 
   void toggleLike() {
     setState(() {
-      if (isLiked) {
-        currentLikes = (currentLikes - 1).clamp(0, 999999);
-        isLiked = false;
+      if (widget.idea.liked) {
+        widget.idea.likes = (widget.idea.likes - 1).clamp(0, 999999);
+        widget.idea.liked = false;
       } else {
-        currentLikes++;
-        isLiked = true;
+        widget.idea.likes++;
+        widget.idea.liked = true;
       }
-
-      widget.idea.likes = currentLikes;
-      widget.idea.liked = isLiked;
     });
   }
 
   void toggleSave() {
     setState(() {
-      isSaved = !isSaved;
-      widget.idea.saved = isSaved;
+      widget.idea.saved = !widget.idea.saved;
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          isSaved ? 'Idea saved!' : 'Idea removed from saved items',
+          widget.idea.saved
+              ? 'Idea added to Saved!'
+              : 'Idea removed from Saved.',
         ),
         duration: const Duration(seconds: 1),
       ),
     );
   }
 
-  void showDetails() {
-    final idea = widget.idea;
+  void addComment() {
+    final text = commentController.text.trim();
 
+    if (text.isEmpty) return;
+
+    setState(() {
+      widget.idea.comments.add(text);
+      commentController.clear();
+    });
+
+    FocusScope.of(context).unfocus();
+  }
+
+  void showIdeaDetails() {
     showDialog<void>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(idea.title),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(idea.description),
-              const SizedBox(height: 16),
-              Chip(
-                avatar: const Icon(Icons.category, size: 18),
-                label: Text(idea.category),
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: Text(widget.idea.title),
+              content: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Chip(
+                      avatar: const Icon(Icons.category_outlined, size: 18),
+                      label: Text(widget.idea.category),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(widget.idea.description),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Posted by ${widget.idea.author}',
+                      style: TextStyle(color: Colors.grey.shade600),
+                    ),
+                    const Divider(height: 28),
+                    Text(
+                      'Feedback (${widget.idea.comments.length})',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    if (widget.idea.comments.isEmpty)
+                      const Text('No comments yet. Be the first to comment.')
+                    else
+                      ...widget.idea.comments.map(
+                        (comment) => Card(
+                          child: ListTile(
+                            leading: const CircleAvatar(
+                              child: Icon(Icons.person_outline),
+                            ),
+                            title: Text(comment),
+                          ),
+                        ),
+                      ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: commentController,
+                      maxLength: 200,
+                      maxLines: 2,
+                      decoration: const InputDecoration(
+                        hintText: 'Write your feedback...',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          final text = commentController.text.trim();
+
+                          if (text.isEmpty) return;
+
+                          setState(() {
+                            widget.idea.comments.add(text);
+                            commentController.clear();
+                          });
+
+                          setDialogState(() {});
+                        },
+                        icon: const Icon(Icons.send),
+                        label: const Text('Add Comment'),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 8),
-              Text('Created by ${idea.author}'),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  const Icon(Icons.favorite, color: Colors.red),
-                  const SizedBox(width: 8),
-                  Text('$currentLikes likes'),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Icon(
-                    isSaved ? Icons.bookmark : Icons.bookmark_border,
-                    color: Colors.indigo,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(isSaved ? 'Saved' : 'Not saved'),
-                ],
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Close'),
-          ),
-        ],
-      ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: const Text('Close'),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final idea = widget.idea;
-
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      clipBehavior: Clip.antiAlias,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            InkWell(
-              onTap: showDetails,
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.lightbulb_outline,
-                    color: Colors.indigo,
-                    size: 28,
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      idea.title,
-                      style: const TextStyle(
-                        fontSize: 19,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  const Icon(Icons.open_in_full, size: 18, color: Colors.grey),
-                ],
-              ),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              idea.description,
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 12),
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Flexible(
-                  child: Chip(
-                    label: Text(idea.category),
-                    visualDensity: VisualDensity.compact,
+                CircleAvatar(
+                  backgroundColor: Theme.of(context)
+                      .colorScheme
+                      .primaryContainer,
+                  child: Icon(
+                    Icons.lightbulb_outline,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
-                const Spacer(),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.idea.title,
+                        style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 5),
+                      Text(
+                        'by ${widget.idea.author}',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
                 IconButton(
-                  tooltip: isSaved ? 'Unsave idea' : 'Save idea',
+                  tooltip: widget.idea.saved ? 'Unsave idea' : 'Save idea',
                   onPressed: toggleSave,
                   icon: Icon(
-                    isSaved ? Icons.bookmark : Icons.bookmark_border,
-                    color: isSaved ? Colors.indigo : Colors.grey,
+                    widget.idea.saved ? Icons.bookmark : Icons.bookmark_border,
+                    color: widget.idea.saved
+                        ? Theme.of(context).colorScheme.primary
+                        : null,
                   ),
                 ),
-                IconButton(
-                  tooltip: isLiked ? 'Unlike idea' : 'Like idea',
-                  onPressed: toggleLike,
-                  icon: Icon(
-                    isLiked ? Icons.favorite : Icons.favorite_border,
-                    color: isLiked ? Colors.red : Colors.grey,
-                  ),
-                ),
-                Text('$currentLikes'),
               ],
             ),
+            const SizedBox(height: 12),
             Text(
-              'By ${idea.author}',
-              style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+              widget.idea.description,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(height: 1.4),
             ),
-            const SizedBox(height: 8),
-            InkWell(
-              onTap: showDetails,
-              child: const Text(
-                'Tap to view full details',
-                style: TextStyle(
-                  color: Colors.indigo,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                ),
+            const SizedBox(height: 12),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Chip(
+                label: Text(widget.idea.category),
+                visualDensity: VisualDensity.compact,
               ),
+            ),
+            const Divider(height: 24),
+            Row(
+              children: [
+                IconButton(
+                  onPressed: toggleLike,
+                  tooltip: widget.idea.liked ? 'Unlike' : 'Like',
+                  icon: Icon(
+                    widget.idea.liked ? Icons.favorite : Icons.favorite_border,
+                    color: widget.idea.liked ? Colors.red : null,
+                  ),
+                ),
+                Text('${widget.idea.likes}'),
+                const SizedBox(width: 16),
+                IconButton(
+                  onPressed: showIdeaDetails,
+                  tooltip: 'View comments and details',
+                  icon: const Icon(Icons.mode_comment_outlined),
+                ),
+                Text('${widget.idea.comments.length} comments'),
+                const Spacer(),
+                TextButton(
+                  onPressed: showIdeaDetails,
+                  child: const Text('View idea'),
+                ),
+              ],
             ),
           ],
         ),
