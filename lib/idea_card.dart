@@ -1,14 +1,11 @@
-
 import 'package:flutter/material.dart';
+
 import 'idea.dart';
 
 class IdeaCard extends StatefulWidget {
   final Idea idea;
 
-  const IdeaCard({
-    super.key,
-    required this.idea,
-  });
+  const IdeaCard({super.key, required this.idea});
 
   @override
   State<IdeaCard> createState() => _IdeaCardState();
@@ -17,69 +14,96 @@ class IdeaCard extends StatefulWidget {
 class _IdeaCardState extends State<IdeaCard> {
   late int currentLikes;
   late bool isLiked;
+  late bool isSaved;
 
   @override
   void initState() {
     super.initState();
     currentLikes = widget.idea.likes;
     isLiked = widget.idea.liked;
+    isSaved = widget.idea.saved;
   }
 
   void toggleLike() {
     setState(() {
       if (isLiked) {
-        currentLikes--;
+        currentLikes = (currentLikes - 1).clamp(0, 999999);
         isLiked = false;
       } else {
         currentLikes++;
         isLiked = true;
       }
+
+      widget.idea.likes = currentLikes;
+      widget.idea.liked = isLiked;
     });
+  }
+
+  void toggleSave() {
+    setState(() {
+      isSaved = !isSaved;
+      widget.idea.saved = isSaved;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          isSaved ? 'Idea saved!' : 'Idea removed from saved items',
+        ),
+        duration: const Duration(seconds: 1),
+      ),
+    );
   }
 
   void showDetails() {
     final idea = widget.idea;
 
-    showDialog(
+    showDialog<void>(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(idea.title),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(idea.description),
-                const SizedBox(height: 16),
-                Chip(
-                  avatar: const Icon(Icons.category, size: 18),
-                  label: Text(idea.category),
-                ),
-                const SizedBox(height: 8),
-                Text('Created by ${idea.author}'),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.favorite,
-                      color: Colors.red,
-                    ),
-                    const SizedBox(width: 8),
-                    Text('$currentLikes likes'),
-                  ],
-                ),
-              ],
-            ),
+      builder: (dialogContext) => AlertDialog(
+        title: Text(idea.title),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(idea.description),
+              const SizedBox(height: 16),
+              Chip(
+                avatar: const Icon(Icons.category, size: 18),
+                label: Text(idea.category),
+              ),
+              const SizedBox(height: 8),
+              Text('Created by ${idea.author}'),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  const Icon(Icons.favorite, color: Colors.red),
+                  const SizedBox(width: 8),
+                  Text('$currentLikes likes'),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(
+                    isSaved ? Icons.bookmark : Icons.bookmark_border,
+                    color: Colors.indigo,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(isSaved ? 'Saved' : 'Not saved'),
+                ],
+              ),
+            ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Close'),
-            ),
-          ],
-        );
-      },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -88,14 +112,9 @@ class _IdeaCardState extends State<IdeaCard> {
     final idea = widget.idea;
 
     return Card(
-      margin: const EdgeInsets.symmetric(
-        horizontal: 4,
-        vertical: 8,
-      ),
+      margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
       elevation: 3,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -120,11 +139,7 @@ class _IdeaCardState extends State<IdeaCard> {
                       ),
                     ),
                   ),
-                  const Icon(
-                    Icons.open_in_full,
-                    size: 18,
-                    color: Colors.grey,
-                  ),
+                  const Icon(Icons.open_in_full, size: 18, color: Colors.grey),
                 ],
               ),
             ),
@@ -145,6 +160,14 @@ class _IdeaCardState extends State<IdeaCard> {
                 ),
                 const Spacer(),
                 IconButton(
+                  tooltip: isSaved ? 'Unsave idea' : 'Save idea',
+                  onPressed: toggleSave,
+                  icon: Icon(
+                    isSaved ? Icons.bookmark : Icons.bookmark_border,
+                    color: isSaved ? Colors.indigo : Colors.grey,
+                  ),
+                ),
+                IconButton(
                   tooltip: isLiked ? 'Unlike idea' : 'Like idea',
                   onPressed: toggleLike,
                   icon: Icon(
@@ -157,10 +180,7 @@ class _IdeaCardState extends State<IdeaCard> {
             ),
             Text(
               'By ${idea.author}',
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.grey.shade600,
-              ),
+              style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
             ),
             const SizedBox(height: 8),
             InkWell(

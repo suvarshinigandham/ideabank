@@ -20,7 +20,6 @@ class IdeaBankApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
         scaffoldBackgroundColor: const Color(0xFFF7F8FC),
         appBarTheme: const AppBarTheme(
-          centerTitle: false,
           backgroundColor: Color(0xFFF7F8FC),
           foregroundColor: Colors.indigo,
         ),
@@ -90,6 +89,7 @@ class _MainScreenState extends State<MainScreen> {
       HomePage(ideas: ideas),
       ExplorePage(ideas: ideas),
       PostPage(onSubmit: addIdea),
+      SavedIdeasPage(ideas: ideas),
       ProfilePage(ideas: ideas),
     ];
 
@@ -117,6 +117,11 @@ class _MainScreenState extends State<MainScreen> {
             icon: Icon(Icons.add_circle_outline),
             selectedIcon: Icon(Icons.add_circle),
             label: 'Post Idea',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.bookmark_border),
+            selectedIcon: Icon(Icons.bookmark),
+            label: 'Saved',
           ),
           NavigationDestination(
             icon: Icon(Icons.person_outline),
@@ -234,16 +239,15 @@ class _ExplorePageState extends State<ExplorePage> {
 
   @override
   Widget build(BuildContext context) {
-    final categories = <String>[
-      'All',
-      ...widget.ideas
-          .map((idea) => idea.category)
-          .where((category) => category.trim().isNotEmpty)
-          .toSet()
-          .toList()
-        ..sort(),
-    ];
+    final categorySet =
+        widget.ideas
+            .map((idea) => idea.category)
+            .where((category) => category.trim().isNotEmpty)
+            .toSet()
+            .toList()
+          ..sort();
 
+    final categories = ['All', ...categorySet];
     final query = searchController.text.trim().toLowerCase();
 
     final filteredIdeas = widget.ideas.where((idea) {
@@ -346,7 +350,10 @@ class _ExplorePageState extends State<ExplorePage> {
                             ),
                           ),
                           SizedBox(height: 6),
-                          Text('Try another category or search term.'),
+                          Text(
+                            'Try another category or search term.',
+                            textAlign: TextAlign.center,
+                          ),
                         ],
                       ),
                     )
@@ -553,6 +560,62 @@ class _PostPageState extends State<PostPage> {
   }
 }
 
+// SAVED IDEAS PAGE
+
+class SavedIdeasPage extends StatelessWidget {
+  final List<Idea> ideas;
+
+  const SavedIdeasPage({super.key, required this.ideas});
+
+  @override
+  Widget build(BuildContext context) {
+    final savedIdeas = ideas.where((idea) => idea.saved).toList();
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          'Saved Ideas',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+      ),
+      body: savedIdeas.isEmpty
+          ? const Center(
+              child: Padding(
+                padding: EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.bookmark_border, size: 64, color: Colors.indigo),
+                    SizedBox(height: 16),
+                    Text(
+                      'No saved ideas yet',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'Tap the bookmark icon on any idea to save it here.',
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            )
+          : ListView.builder(
+              padding: const EdgeInsets.all(12),
+              itemCount: savedIdeas.length,
+              itemBuilder: (context, index) {
+                final idea = savedIdeas[index];
+
+                return IdeaCard(key: ObjectKey(idea), idea: idea);
+              },
+            ),
+    );
+  }
+}
+
 // PROFILE PAGE
 
 class ProfilePage extends StatelessWidget {
@@ -614,7 +677,7 @@ class ProfilePage extends StatelessWidget {
           ),
           const SizedBox(height: 28),
           const Text(
-            'My Shared Ideas',
+            'Shared Ideas',
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
@@ -680,6 +743,8 @@ class _ProfileStat extends StatelessWidget {
     );
   }
 }
+
+// EMPTY STATE WIDGET
 
 class EmptyIdeasMessage extends StatelessWidget {
   final String message;
