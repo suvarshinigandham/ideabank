@@ -1,3 +1,4 @@
+
 class Idea {
   String title;
   String description;
