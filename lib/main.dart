@@ -79,43 +79,100 @@ class _MainScreenState extends State<MainScreen> {
       ProfilePage(ideas: ideas),
     ];
 
-    return Scaffold(
-      body: IndexedStack(index: selectedIndex, children: pages),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: selectedIndex,
-        onDestinationSelected: (index) {
-          setState(() {
-            selectedIndex = index;
-          });
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'Home',
+    // COMMIT 18: RESPONSIVE NAVIGATION
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWideScreen = constraints.maxWidth >= 700;
+
+        return Scaffold(
+          body: Row(
+            children: [
+              if (isWideScreen)
+                NavigationRail(
+                  selectedIndex: selectedIndex,
+                  onDestinationSelected: (index) {
+                    setState(() {
+                      selectedIndex = index;
+                    });
+                  },
+                  labelType: NavigationRailLabelType.all,
+                  destinations: const [
+                    NavigationRailDestination(
+                      icon: Icon(Icons.home_outlined),
+                      selectedIcon: Icon(Icons.home),
+                      label: Text('Home'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.explore_outlined),
+                      selectedIcon: Icon(Icons.explore),
+                      label: Text('Explore'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.add_circle_outline),
+                      selectedIcon: Icon(Icons.add_circle),
+                      label: Text('Post Idea'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.bookmark_border),
+                      selectedIcon: Icon(Icons.bookmark),
+                      label: Text('Saved'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.person_outline),
+                      selectedIcon: Icon(Icons.person),
+                      label: Text('Profile'),
+                    ),
+                  ],
+                ),
+              Expanded(
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 1100),
+                    child: IndexedStack(index: selectedIndex, children: pages),
+                  ),
+                ),
+              ),
+            ],
           ),
-          NavigationDestination(
-            icon: Icon(Icons.explore_outlined),
-            selectedIcon: Icon(Icons.explore),
-            label: 'Explore',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.add_circle_outline),
-            selectedIcon: Icon(Icons.add_circle),
-            label: 'Post Idea',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.bookmark_border),
-            selectedIcon: Icon(Icons.bookmark),
-            label: 'Saved',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
-      ),
+          bottomNavigationBar: isWideScreen
+              ? null
+              : NavigationBar(
+                  selectedIndex: selectedIndex,
+                  onDestinationSelected: (index) {
+                    setState(() {
+                      selectedIndex = index;
+                    });
+                  },
+                  destinations: const [
+                    NavigationDestination(
+                      icon: Icon(Icons.home_outlined),
+                      selectedIcon: Icon(Icons.home),
+                      label: 'Home',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(Icons.explore_outlined),
+                      selectedIcon: Icon(Icons.explore),
+                      label: 'Explore',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(Icons.add_circle_outline),
+                      selectedIcon: Icon(Icons.add_circle),
+                      label: 'Post Idea',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(Icons.bookmark_border),
+                      selectedIcon: Icon(Icons.bookmark),
+                      label: 'Saved',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(Icons.person_outline),
+                      selectedIcon: Icon(Icons.person),
+                      label: 'Profile',
+                    ),
+                  ],
+                ),
+        );
+      },
     );
   }
 }
@@ -383,6 +440,7 @@ class _ExplorePageState extends State<ExplorePage> {
     );
   }
 }
+
 // POST IDEA PAGE
 
 class PostPage extends StatefulWidget {
@@ -492,7 +550,6 @@ class _PostPageState extends State<PostPage> {
                 ),
               ),
               const SizedBox(height: 24),
-
               const Text(
                 'Idea Title',
                 style: TextStyle(fontWeight: FontWeight.w600),
@@ -517,7 +574,6 @@ class _PostPageState extends State<PostPage> {
                 },
               ),
               const SizedBox(height: 16),
-
               const Text(
                 'Description',
                 style: TextStyle(fontWeight: FontWeight.w600),
@@ -544,7 +600,6 @@ class _PostPageState extends State<PostPage> {
                 },
               ),
               const SizedBox(height: 16),
-
               const Text(
                 'Category',
                 style: TextStyle(fontWeight: FontWeight.w600),
@@ -571,7 +626,6 @@ class _PostPageState extends State<PostPage> {
                 },
               ),
               const SizedBox(height: 16),
-
               const Text(
                 'Your Name',
                 style: TextStyle(fontWeight: FontWeight.w600),
@@ -596,7 +650,6 @@ class _PostPageState extends State<PostPage> {
                 },
               ),
               const SizedBox(height: 12),
-
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
@@ -615,6 +668,7 @@ class _PostPageState extends State<PostPage> {
     );
   }
 }
+
 // SAVED IDEAS PAGE
 
 class SavedIdeasPage extends StatelessWidget {
@@ -854,6 +908,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 }
+
 // PROFILE STATISTICS CARD
 
 class _ProfileStatCard extends StatelessWidget {
@@ -888,8 +943,6 @@ class _ProfileStatCard extends StatelessWidget {
     );
   }
 }
-
-// EMPTY STATE WIDGET
 
 // EMPTY STATE WIDGET
 
