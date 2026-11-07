@@ -28,9 +28,7 @@ class IdeaCard extends StatelessWidget {
   String formatDate(DateTime date) {
     final difference = DateTime.now().difference(date);
 
-    if (difference.inMinutes < 1) {
-      return 'just now';
-    }
+    if (difference.inMinutes < 1) return 'just now';
 
     if (difference.inHours < 1) {
       return '${difference.inMinutes} minutes ago';
@@ -40,12 +38,169 @@ class IdeaCard extends StatelessWidget {
       return '${difference.inHours} hours ago';
     }
 
-    if (difference.inDays == 1) {
-      return 'yesterday';
-    }
+    if (difference.inDays == 1) return 'yesterday';
 
     return '${date.day}/${date.month}/${date.year}';
   }
+
+  // EDIT IDEA
+
+  void editIdea(BuildContext context) {
+    final titleController = TextEditingController(text: idea.title);
+    final descriptionController = TextEditingController(text: idea.description);
+    final authorController = TextEditingController(text: idea.author);
+
+    final categories = [
+      'Technology',
+      'Education',
+      'Transportation',
+      'Health',
+      'Environment',
+      'Business',
+      'Other',
+    ];
+
+    String selectedCategory = categories.contains(idea.category)
+        ? idea.category
+        : 'Other';
+
+    final formKey = GlobalKey<FormState>();
+
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('Edit Your Idea'),
+              content: SizedBox(
+                width: 450,
+                child: SingleChildScrollView(
+                  child: Form(
+                    key: formKey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        TextFormField(
+                          controller: titleController,
+                          maxLength: 80,
+                          decoration: const InputDecoration(
+                            labelText: 'Idea Title',
+                            prefixIcon: Icon(Icons.lightbulb_outline),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.trim().length < 5) {
+                              return 'Enter at least 5 characters';
+                            }
+                            return null;
+                          },
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        TextFormField(
+                          controller: descriptionController,
+                          maxLength: 500,
+                          maxLines: 4,
+                          decoration: const InputDecoration(
+                            labelText: 'Description',
+                            alignLabelWithHint: true,
+                          ),
+                          validator: (value) {
+                            if (value == null || value.trim().length < 20) {
+                              return 'Enter at least 20 characters';
+                            }
+                            return null;
+                          },
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        DropdownButtonFormField<String>(
+                          initialValue: selectedCategory,
+                          decoration: const InputDecoration(
+                            labelText: 'Category',
+                            prefixIcon: Icon(Icons.category_outlined),
+                          ),
+                          items: categories.map((category) {
+                            return DropdownMenuItem(
+                              value: category,
+                              child: Text(category),
+                            );
+                          }).toList(),
+                          onChanged: (value) {
+                            if (value != null) {
+                              setDialogState(() {
+                                selectedCategory = value;
+                              });
+                            }
+                          },
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        TextFormField(
+                          controller: authorController,
+                          maxLength: 40,
+                          decoration: const InputDecoration(
+                            labelText: 'Author Name',
+                            prefixIcon: Icon(Icons.person_outline),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.trim().length < 2) {
+                              return 'Enter your name';
+                            }
+                            return null;
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(dialogContext);
+                  },
+                  child: const Text('Cancel'),
+                ),
+
+                ElevatedButton.icon(
+                  onPressed: () {
+                    if (!formKey.currentState!.validate()) return;
+
+                    idea.title = titleController.text.trim();
+                    idea.description = descriptionController.text.trim();
+                    idea.category = selectedCategory;
+                    idea.author = authorController.text.trim();
+
+                    onChanged();
+
+                    Navigator.pop(dialogContext);
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Idea updated successfully!'),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.save),
+                  label: const Text('Save Changes'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    ).then((_) {
+      titleController.dispose();
+      descriptionController.dispose();
+      authorController.dispose();
+    });
+  }
+
+  // VIEW IDEA DETAILS AND COMMENTS
 
   void showIdeaDetails(BuildContext context) {
     final commentController = TextEditingController();
@@ -182,12 +337,16 @@ class IdeaCard extends StatelessWidget {
                       Text(idea.category, style: theme.textTheme.bodySmall),
                       Text(
                         'Posted ${formatDate(idea.createdAt)}',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
+                        style: theme.textTheme.bodySmall,
                       ),
                     ],
                   ),
+                ),
+
+                IconButton(
+                  tooltip: 'Edit idea',
+                  onPressed: () => editIdea(context),
+                  icon: const Icon(Icons.edit_outlined),
                 ),
 
                 IconButton(
