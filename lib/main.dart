@@ -27,8 +27,6 @@ class IdeaBankApp extends StatelessWidget {
   }
 }
 
-// SUPPORT MOUSE AND TRACKPAD SCROLLING
-
 class AppScrollBehavior extends MaterialScrollBehavior {
   const AppScrollBehavior();
 
@@ -86,8 +84,6 @@ class _MainScreenState extends State<MainScreen> {
     loadData();
   }
 
-  // LOAD SAVED IDEAS AND PROFILE
-
   Future<void> loadData() async {
     final prefs = await SharedPreferences.getInstance();
 
@@ -126,8 +122,6 @@ class _MainScreenState extends State<MainScreen> {
     }
   }
 
-  // SAVE IDEAS AND PROFILE
-
   Future<void> saveData() async {
     final prefs = await SharedPreferences.getInstance();
 
@@ -138,14 +132,10 @@ class _MainScreenState extends State<MainScreen> {
     await prefs.setString('ideabank_profile_bio', profileBio);
   }
 
-  // SAVE AFTER ANY IDEA CHANGE
-
   void onIdeaChanged() {
     setState(() {});
     saveData();
   }
-
-  // ADD A NEW IDEA
 
   void addIdea(Idea idea) {
     setState(() {
@@ -159,8 +149,6 @@ class _MainScreenState extends State<MainScreen> {
       const SnackBar(content: Text('Your idea was posted successfully!')),
     );
   }
-
-  // UPDATE PROFILE
 
   void updateProfile(String name, String bio) {
     setState(() {
@@ -365,23 +353,17 @@ class HomePage extends StatelessWidget {
               ],
             ),
           ),
-
           const SizedBox(height: 26),
-
           const Text(
             'Discover Ideas',
             style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
           ),
-
           const SizedBox(height: 6),
-
           Text(
             'Explore what the community is thinking about.',
             style: TextStyle(color: Colors.grey.shade700),
           ),
-
           const SizedBox(height: 16),
-
           if (ideas.isEmpty)
             const EmptyIdeasMessage(
               title: 'No ideas yet',
@@ -438,16 +420,14 @@ class _ExplorePageState extends State<ExplorePage> {
       return matchesSearch && matchesCategory;
     }).toList();
 
+    // TIMESTAMP-BASED SORTING
+
     if (selectedSort == 'Most Liked') {
       filteredIdeas.sort((a, b) => b.likes.compareTo(a.likes));
     } else if (selectedSort == 'Oldest') {
-      filteredIdeas.sort(
-        (a, b) => widget.ideas.indexOf(b).compareTo(widget.ideas.indexOf(a)),
-      );
+      filteredIdeas.sort((a, b) => a.createdAt.compareTo(b.createdAt));
     } else {
-      filteredIdeas.sort(
-        (a, b) => widget.ideas.indexOf(a).compareTo(widget.ideas.indexOf(b)),
-      );
+      filteredIdeas.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     }
 
     return Scaffold(
@@ -616,6 +596,7 @@ class _PostPageState extends State<PostPage> {
       description: descriptionController.text.trim(),
       category: selectedCategory,
       author: authorController.text.trim(),
+      createdAt: DateTime.now(),
     );
 
     widget.onSubmit(idea);
@@ -651,14 +632,11 @@ class _PostPageState extends State<PostPage> {
                 'Have a great idea?',
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
-
               const SizedBox(height: 8),
-
               Text(
                 'Describe it and share it with the IdeaBank community.',
                 style: TextStyle(color: Colors.grey.shade700),
               ),
-
               const SizedBox(height: 24),
 
               TextFormField(
@@ -867,9 +845,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     prefixIcon: Icon(Icons.person_outline),
                   ),
                 ),
-
                 const SizedBox(height: 12),
-
                 TextField(
                   controller: bioController,
                   maxLength: 120,
@@ -889,7 +865,6 @@ class _ProfilePageState extends State<ProfilePage> {
               },
               child: const Text('Cancel'),
             ),
-
             ElevatedButton(
               onPressed: () {
                 final name = nameController.text.trim();
@@ -995,9 +970,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     value: totalIdeas.toString(),
                   ),
                 ),
-
                 const SizedBox(width: 10),
-
                 Expanded(
                   child: _ProfileStatCard(
                     icon: Icons.favorite_outline,
@@ -1005,9 +978,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     value: totalLikes.toString(),
                   ),
                 ),
-
                 const SizedBox(width: 10),
-
                 Expanded(
                   child: _ProfileStatCard(
                     icon: Icons.bookmark_outline,
@@ -1077,16 +1048,12 @@ class _ProfileStatCard extends StatelessWidget {
         child: Column(
           children: [
             Icon(icon, size: 27, color: Theme.of(context).colorScheme.primary),
-
             const SizedBox(height: 10),
-
             Text(
               value,
               style: const TextStyle(fontSize: 21, fontWeight: FontWeight.bold),
             ),
-
             const SizedBox(height: 4),
-
             Text(label, style: const TextStyle(fontSize: 12)),
           ],
         ),
@@ -1095,7 +1062,7 @@ class _ProfileStatCard extends StatelessWidget {
   }
 }
 
-// EMPTY STATE WIDGET
+// EMPTY STATE
 
 class EmptyIdeasMessage extends StatelessWidget {
   final String message;
@@ -1127,9 +1094,7 @@ class EmptyIdeasMessage extends StatelessWidget {
               ),
               child: Icon(icon, size: 55, color: theme.colorScheme.primary),
             ),
-
             const SizedBox(height: 22),
-
             Text(
               title,
               textAlign: TextAlign.center,
@@ -1137,9 +1102,7 @@ class EmptyIdeasMessage extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
-
             const SizedBox(height: 10),
-
             Text(
               message,
               textAlign: TextAlign.center,
@@ -1148,9 +1111,7 @@ class EmptyIdeasMessage extends StatelessWidget {
                 height: 1.5,
               ),
             ),
-
             const SizedBox(height: 18),
-
             Text(
               'Keep exploring and sharing your ideas!',
               textAlign: TextAlign.center,

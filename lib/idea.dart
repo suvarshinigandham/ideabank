@@ -7,6 +7,7 @@ class Idea {
   bool liked;
   bool saved;
   List<String> comments;
+  DateTime createdAt;
 
   Idea({
     required this.title,
@@ -17,7 +18,9 @@ class Idea {
     this.liked = false,
     this.saved = false,
     List<String>? comments,
-  }) : comments = comments ?? [];
+    DateTime? createdAt,
+  }) : comments = comments ?? [],
+       createdAt = createdAt ?? DateTime.now();
 
   Map<String, dynamic> toJson() {
     return {
@@ -29,6 +32,7 @@ class Idea {
       'liked': liked,
       'saved': saved,
       'comments': comments,
+      'createdAt': createdAt.toIso8601String(),
     };
   }
 
@@ -42,6 +46,9 @@ class Idea {
       liked: json['liked'] ?? false,
       saved: json['saved'] ?? false,
       comments: List<String>.from(json['comments'] ?? []),
+      createdAt:
+          DateTime.tryParse(json['createdAt']?.toString() ?? '') ??
+          DateTime.now(),
     );
   }
 }

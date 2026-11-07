@@ -25,6 +25,28 @@ class IdeaCard extends StatelessWidget {
     onChanged();
   }
 
+  String formatDate(DateTime date) {
+    final difference = DateTime.now().difference(date);
+
+    if (difference.inMinutes < 1) {
+      return 'just now';
+    }
+
+    if (difference.inHours < 1) {
+      return '${difference.inMinutes} minutes ago';
+    }
+
+    if (difference.inDays < 1) {
+      return '${difference.inHours} hours ago';
+    }
+
+    if (difference.inDays == 1) {
+      return 'yesterday';
+    }
+
+    return '${date.day}/${date.month}/${date.year}';
+  }
+
   void showIdeaDetails(BuildContext context) {
     final commentController = TextEditingController();
 
@@ -49,6 +71,11 @@ class IdeaCard extends StatelessWidget {
                       Text(
                         'Posted by ${idea.author}',
                         style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Posted ${formatDate(idea.createdAt)}',
+                        style: Theme.of(context).textTheme.bodySmall,
                       ),
                       const Divider(height: 28),
                       const Text(
@@ -143,6 +170,7 @@ class IdeaCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 12),
+
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -152,9 +180,16 @@ class IdeaCard extends StatelessWidget {
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                       Text(idea.category, style: theme.textTheme.bodySmall),
+                      Text(
+                        'Posted ${formatDate(idea.createdAt)}',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
                     ],
                   ),
                 ),
+
                 IconButton(
                   tooltip: idea.saved ? 'Unsave idea' : 'Save idea',
                   onPressed: toggleSave,
