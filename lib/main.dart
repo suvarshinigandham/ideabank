@@ -891,29 +891,63 @@ class _ProfileStatCard extends StatelessWidget {
 
 // EMPTY STATE WIDGET
 
+// EMPTY STATE WIDGET
+
 class EmptyIdeasMessage extends StatelessWidget {
   final String message;
+  final String title;
+  final IconData icon;
 
-  const EmptyIdeasMessage({super.key, required this.message});
+  const EmptyIdeasMessage({
+    super.key,
+    required this.message,
+    this.title = 'Nothing to show yet!',
+    this.icon = Icons.lightbulb_outline,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 45),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.lightbulb_outline,
-              size: 56,
-              color: Colors.grey.shade400,
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primaryContainer,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: 55, color: theme.colorScheme.primary),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 22),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 10),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16, color: Colors.grey.shade700),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 18),
+            Text(
+              'Keep exploring and sharing your ideas!',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.primary,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ],
         ),
