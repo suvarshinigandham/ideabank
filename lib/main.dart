@@ -930,6 +930,10 @@ class _ProfilePageState extends State<ProfilePage> {
 
     final savedIdeas = widget.ideas.where((idea) => idea.saved).length;
 
+    // SORT IDEAS BY MOST RECENTLY CREATED
+    final recentIdeas = List<Idea>.from(widget.ideas)
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -998,6 +1002,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
             const SizedBox(height: 24),
 
+            // PROFILE ACTIVITY STATISTICS
             Align(
               alignment: Alignment.centerLeft,
               child: Text(
@@ -1034,7 +1039,59 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
               ],
             ),
-            const SizedBox(height: 24),
+
+            const SizedBox(height: 28),
+
+            // RECENT ACTIVITY HISTORY
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Recent Activity',
+                style: Theme.of(context).textTheme.titleLarge
+                    ?.copyWith(fontWeight: FontWeight.bold),
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            if (recentIdeas.isEmpty)
+              const EmptyIdeasMessage(
+                title: 'No activity yet',
+                message: 'Ideas you share will appear here.',
+                icon: Icons.history,
+              )
+            else
+              ...recentIdeas
+                  .take(5)
+                  .map(
+                    (idea) => Card(
+                      margin: const EdgeInsets.only(bottom: 10),
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: Theme.of(context)
+                              .colorScheme
+                              .primaryContainer,
+                          child: Icon(
+                            Icons.lightbulb_outline,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        ),
+                        title: Text(
+                          idea.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        subtitle: Text(
+                          '${idea.category} • ${_formatActivityDate(idea.createdAt)}',
+                        ),
+                        trailing: const Icon(Icons.chevron_right),
+                      ),
+                    ),
+                  ),
+
+            const SizedBox(height: 16),
+
+            // COMMUNITY INFORMATION
             Card(
               child: ListTile(
                 leading: const Icon(Icons.groups_outlined),
@@ -1069,6 +1126,15 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
     );
   }
+}
+
+// FORMAT ACTIVITY DATE
+
+String _formatActivityDate(DateTime date) {
+  final day = date.day.toString().padLeft(2, '0');
+  final month = date.month.toString().padLeft(2, '0');
+
+  return '$day/$month/${date.year}';
 }
 
 // PROFILE STATISTICS CARD
