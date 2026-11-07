@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'idea.dart';
 
@@ -33,6 +34,21 @@ class IdeaCard extends StatelessWidget {
   void toggleSave() {
     idea.saved = !idea.saved;
     onChanged();
+  }
+
+  // SHARE IDEA
+
+  void shareIdea(BuildContext context) {
+    final shareText =
+        '${idea.title}\n\n'
+        '${idea.description}\n\n'
+        'Shared from IdeaBank';
+
+    Clipboard.setData(ClipboardData(text: shareText));
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Idea copied! You can now share it.')),
+    );
   }
 
   // FORMAT DATE
@@ -90,12 +106,10 @@ class IdeaCard extends StatelessWidget {
       },
     );
 
-    // FIX: Check whether the widget is still mounted after await.
     if (!context.mounted) return;
 
     if (confirmed == true) {
       allIdeas.remove(idea);
-
       onChanged();
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -156,9 +170,7 @@ class IdeaCard extends StatelessWidget {
                             return null;
                           },
                         ),
-
                         const SizedBox(height: 12),
-
                         TextFormField(
                           controller: descriptionController,
                           maxLength: 500,
@@ -174,9 +186,7 @@ class IdeaCard extends StatelessWidget {
                             return null;
                           },
                         ),
-
                         const SizedBox(height: 12),
-
                         DropdownButtonFormField<String>(
                           initialValue: selectedCategory,
                           decoration: const InputDecoration(
@@ -197,9 +207,7 @@ class IdeaCard extends StatelessWidget {
                             }
                           },
                         ),
-
                         const SizedBox(height: 12),
-
                         TextFormField(
                           controller: authorController,
                           maxLength: 40,
@@ -226,7 +234,6 @@ class IdeaCard extends StatelessWidget {
                   },
                   child: const Text('Cancel'),
                 ),
-
                 ElevatedButton.icon(
                   onPressed: () {
                     if (!formKey.currentState!.validate()) return;
@@ -281,27 +288,19 @@ class IdeaCard extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Chip(label: Text(idea.category)),
-
                       const SizedBox(height: 12),
-
                       Text(idea.description),
-
                       const SizedBox(height: 16),
-
                       Text(
                         'Posted by ${idea.author}',
                         style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
-
                       const SizedBox(height: 6),
-
                       Text(
                         'Posted ${formatDate(idea.createdAt)}',
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
-
                       const Divider(height: 28),
-
                       const Text(
                         'Comments',
                         style: TextStyle(
@@ -309,9 +308,7 @@ class IdeaCard extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-
                       const SizedBox(height: 10),
-
                       if (idea.comments.isEmpty)
                         const Text('No comments yet.')
                       else
@@ -324,9 +321,7 @@ class IdeaCard extends StatelessWidget {
                             title: Text(comment),
                           ),
                         ),
-
                       const SizedBox(height: 12),
-
                       TextField(
                         controller: commentController,
                         maxLength: 200,
@@ -335,7 +330,6 @@ class IdeaCard extends StatelessWidget {
                           prefixIcon: Icon(Icons.comment_outlined),
                         ),
                       ),
-
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton.icon(
@@ -396,9 +390,7 @@ class IdeaCard extends StatelessWidget {
                     color: theme.colorScheme.primary,
                   ),
                 ),
-
                 const SizedBox(width: 12),
-
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -415,19 +407,16 @@ class IdeaCard extends StatelessWidget {
                     ],
                   ),
                 ),
-
                 IconButton(
                   tooltip: 'Edit idea',
                   onPressed: () => editIdea(context),
                   icon: const Icon(Icons.edit_outlined),
                 ),
-
                 IconButton(
                   tooltip: 'Delete idea',
                   onPressed: () => deleteIdea(context),
                   icon: const Icon(Icons.delete_outline, color: Colors.red),
                 ),
-
                 IconButton(
                   tooltip: idea.saved ? 'Unsave idea' : 'Save idea',
                   onPressed: toggleSave,
@@ -438,34 +427,26 @@ class IdeaCard extends StatelessWidget {
                 ),
               ],
             ),
-
             const SizedBox(height: 14),
-
             Text(
               idea.title,
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
             ),
-
             const SizedBox(height: 8),
-
             Text(
               idea.description,
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
               style: theme.textTheme.bodyMedium?.copyWith(height: 1.5),
             ),
-
             const SizedBox(height: 14),
-
             TextButton(
               onPressed: () => showIdeaDetails(context),
               child: const Text('View Details'),
             ),
-
             const Divider(),
-
             Row(
               children: [
                 IconButton(
@@ -475,20 +456,19 @@ class IdeaCard extends StatelessWidget {
                     color: idea.liked ? Colors.red : null,
                   ),
                 ),
-
                 Text('${idea.likes} Likes'),
-
-                const SizedBox(width: 18),
-
+                const SizedBox(width: 12),
                 IconButton(
                   onPressed: () => showIdeaDetails(context),
                   icon: const Icon(Icons.comment_outlined),
                 ),
-
                 Text('${idea.comments.length} Comments'),
-
+                IconButton(
+                  tooltip: 'Share idea',
+                  onPressed: () => shareIdea(context),
+                  icon: const Icon(Icons.share_outlined),
+                ),
                 const Spacer(),
-
                 if (idea.saved)
                   const Icon(Icons.bookmark, color: Color(0xFF6750A4)),
               ],
