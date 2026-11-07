@@ -12,20 +12,31 @@ void main() {
   runApp(const IdeaBankApp());
 }
 
+// APPLICATION
+
 class IdeaBankApp extends StatelessWidget {
   const IdeaBankApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'IdeaBank',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      scrollBehavior: const AppScrollBehavior(),
-      home: const MainScreen(),
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: AppTheme.themeMode,
+      builder: (context, currentMode, child) {
+        return MaterialApp(
+          title: 'IdeaBank',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: currentMode,
+          scrollBehavior: const AppScrollBehavior(),
+          home: const MainScreen(),
+        );
+      },
     );
   }
 }
+
+// MOUSE AND TRACKPAD SCROLLING
 
 class AppScrollBehavior extends MaterialScrollBehavior {
   const AppScrollBehavior();
@@ -84,6 +95,8 @@ class _MainScreenState extends State<MainScreen> {
     loadData();
   }
 
+  // LOAD SAVED DATA
+
   Future<void> loadData() async {
     final prefs = await SharedPreferences.getInstance();
 
@@ -111,6 +124,11 @@ class _MainScreenState extends State<MainScreen> {
         prefs.getString('ideabank_profile_bio') ??
         'Sharing ideas, learning, and building together.';
 
+    // RESTORE THEME PREFERENCE
+    final savedDarkMode = prefs.getBool('ideabank_dark_mode') ?? false;
+
+    AppTheme.toggleTheme(savedDarkMode);
+
     if (!mounted) return;
 
     setState(() {
@@ -122,6 +140,8 @@ class _MainScreenState extends State<MainScreen> {
     }
   }
 
+  // SAVE DATA
+
   Future<void> saveData() async {
     final prefs = await SharedPreferences.getInstance();
 
@@ -130,12 +150,27 @@ class _MainScreenState extends State<MainScreen> {
     await prefs.setString('ideabank_ideas', encodedData);
     await prefs.setString('ideabank_profile_name', displayName);
     await prefs.setString('ideabank_profile_bio', profileBio);
+    await prefs.setBool('ideabank_dark_mode', AppTheme.isDarkMode);
   }
+
+  // SAVE THEME PREFERENCE
+
+  Future<void> saveThemePreference(bool isDark) async {
+    AppTheme.toggleTheme(isDark);
+
+    final prefs = await SharedPreferences.getInstance();
+
+    await prefs.setBool('ideabank_dark_mode', isDark);
+  }
+
+  // IDEA CHANGED
 
   void onIdeaChanged() {
     setState(() {});
     saveData();
   }
+
+  // ADD IDEA
 
   void addIdea(Idea idea) {
     setState(() {
@@ -149,6 +184,8 @@ class _MainScreenState extends State<MainScreen> {
       const SnackBar(content: Text('Your idea was posted successfully!')),
     );
   }
+
+  // UPDATE PROFILE
 
   void updateProfile(String name, String bio) {
     setState(() {
@@ -175,6 +212,7 @@ class _MainScreenState extends State<MainScreen> {
         displayName: displayName,
         bio: profileBio,
         onProfileChanged: updateProfile,
+        onThemeChanged: saveThemePreference,
       ),
     ];
 
@@ -359,7 +397,9 @@ class HomePage extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             'Explore what the community is thinking about.',
-            style: TextStyle(color: Colors.grey.shade700),
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(height: 16),
           if (ideas.isEmpty)
@@ -421,8 +461,6 @@ class _ExplorePageState extends State<ExplorePage> {
 
       return matchesSearch && matchesCategory;
     }).toList();
-
-    // TIMESTAMP-BASED SORTING
 
     if (selectedSort == 'Most Liked') {
       filteredIdeas.sort((a, b) => b.likes.compareTo(a.likes));
@@ -634,7 +672,9 @@ class _PostPageState extends State<PostPage> {
               const SizedBox(height: 8),
               Text(
                 'Describe it and share it with the IdeaBank community.',
-                style: TextStyle(color: Colors.grey.shade700),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
               const SizedBox(height: 24),
               TextFormField(
@@ -800,6 +840,7 @@ class ProfilePage extends StatefulWidget {
   final String displayName;
   final String bio;
   final Function(String, String) onProfileChanged;
+  final ValueChanged<bool> onThemeChanged;
 
   const ProfilePage({
     super.key,
@@ -807,6 +848,7 @@ class ProfilePage extends StatefulWidget {
     required this.displayName,
     required this.bio,
     required this.onProfileChanged,
+    required this.onThemeChanged,
   });
 
   @override
@@ -816,6 +858,7 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   void editProfile() {
     final nameController = TextEditingController(text: widget.displayName);
+
     final bioController = TextEditingController(text: widget.bio);
 
     showDialog<void>(
@@ -931,6 +974,30 @@ class _ProfilePageState extends State<ProfilePage> {
               label: const Text('Edit Profile'),
             ),
             const SizedBox(height: 28),
+
+            // DARK MODE SETTING
+            Card(
+              child: SwitchListTile(
+                secondary: Icon(
+                  AppTheme.isDarkMode ? Icons.dark_mode : Icons.light_mode,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                title: const Text(
+                  'Dark Mode',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                subtitle: Text(
+                  AppTheme.isDarkMode
+                      ? 'Dark appearance is enabled'
+                      : 'Use a darker appearance for the app',
+                ),
+                value: AppTheme.isDarkMode,
+                onChanged: widget.onThemeChanged,
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
             Align(
               alignment: Alignment.centerLeft,
               child: Text(
