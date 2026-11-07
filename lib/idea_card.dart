@@ -4,9 +4,17 @@ import 'idea.dart';
 
 class IdeaCard extends StatelessWidget {
   final Idea idea;
+  final List<Idea> allIdeas;
   final VoidCallback onChanged;
 
-  const IdeaCard({super.key, required this.idea, required this.onChanged});
+  const IdeaCard({
+    super.key,
+    required this.idea,
+    required this.allIdeas,
+    required this.onChanged,
+  });
+
+  // LIKE AND UNLIKE IDEA
 
   void toggleLike() {
     if (idea.liked) {
@@ -20,10 +28,14 @@ class IdeaCard extends StatelessWidget {
     onChanged();
   }
 
+  // SAVE AND UNSAVE IDEA
+
   void toggleSave() {
     idea.saved = !idea.saved;
     onChanged();
   }
+
+  // FORMAT DATE
 
   String formatDate(DateTime date) {
     final difference = DateTime.now().difference(date);
@@ -41,6 +53,55 @@ class IdeaCard extends StatelessWidget {
     if (difference.inDays == 1) return 'yesterday';
 
     return '${date.day}/${date.month}/${date.year}';
+  }
+
+  // DELETE IDEA
+
+  Future<void> deleteIdea(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Delete Idea?'),
+          content: const Text(
+            'Are you sure you want to delete this idea? '
+            'This action cannot be undone.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(dialogContext, false);
+              },
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.pop(dialogContext, true);
+              },
+              icon: const Icon(Icons.delete_outline),
+              label: const Text('Delete'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    // FIX: Check whether the widget is still mounted after await.
+    if (!context.mounted) return;
+
+    if (confirmed == true) {
+      allIdeas.remove(idea);
+
+      onChanged();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Idea deleted successfully!')),
+      );
+    }
   }
 
   // EDIT IDEA
@@ -220,19 +281,27 @@ class IdeaCard extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Chip(label: Text(idea.category)),
+
                       const SizedBox(height: 12),
+
                       Text(idea.description),
+
                       const SizedBox(height: 16),
+
                       Text(
                         'Posted by ${idea.author}',
                         style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
+
                       const SizedBox(height: 6),
+
                       Text(
                         'Posted ${formatDate(idea.createdAt)}',
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
+
                       const Divider(height: 28),
+
                       const Text(
                         'Comments',
                         style: TextStyle(
@@ -240,6 +309,7 @@ class IdeaCard extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
+
                       const SizedBox(height: 10),
 
                       if (idea.comments.isEmpty)
@@ -305,6 +375,8 @@ class IdeaCard extends StatelessWidget {
     });
   }
 
+  // BUILD IDEA CARD
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -324,6 +396,7 @@ class IdeaCard extends StatelessWidget {
                     color: theme.colorScheme.primary,
                   ),
                 ),
+
                 const SizedBox(width: 12),
 
                 Expanded(
@@ -347,6 +420,12 @@ class IdeaCard extends StatelessWidget {
                   tooltip: 'Edit idea',
                   onPressed: () => editIdea(context),
                   icon: const Icon(Icons.edit_outlined),
+                ),
+
+                IconButton(
+                  tooltip: 'Delete idea',
+                  onPressed: () => deleteIdea(context),
+                  icon: const Icon(Icons.delete_outline, color: Colors.red),
                 ),
 
                 IconButton(

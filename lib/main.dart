@@ -222,7 +222,6 @@ class _MainScreenState extends State<MainScreen> {
                     ),
                   ],
                 ),
-
               Expanded(
                 child: Center(
                   child: ConstrainedBox(
@@ -233,7 +232,6 @@ class _MainScreenState extends State<MainScreen> {
               ),
             ],
           ),
-
           bottomNavigationBar: isWideScreen
               ? null
               : NavigationBar(
@@ -373,7 +371,11 @@ class HomePage extends StatelessWidget {
             ...ideas.map(
               (idea) => Padding(
                 padding: const EdgeInsets.only(bottom: 12),
-                child: IdeaCard(idea: idea, onChanged: onChanged),
+                child: IdeaCard(
+                  idea: idea,
+                  allIdeas: ideas,
+                  onChanged: onChanged,
+                ),
               ),
             ),
         ],
@@ -453,7 +455,6 @@ class _ExplorePageState extends State<ExplorePage> {
               },
             ),
           ),
-
           SizedBox(
             height: 48,
             child: ListView.separated(
@@ -476,7 +477,6 @@ class _ExplorePageState extends State<ExplorePage> {
               },
             ),
           ),
-
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
             child: Row(
@@ -518,9 +518,7 @@ class _ExplorePageState extends State<ExplorePage> {
               ],
             ),
           ),
-
           const SizedBox(height: 8),
-
           Expanded(
             child: filteredIdeas.isEmpty
                 ? const EmptyIdeasMessage(
@@ -536,6 +534,7 @@ class _ExplorePageState extends State<ExplorePage> {
                         padding: const EdgeInsets.only(bottom: 12),
                         child: IdeaCard(
                           idea: filteredIdeas[index],
+                          allIdeas: widget.ideas,
                           onChanged: widget.onChanged,
                         ),
                       );
@@ -638,7 +637,6 @@ class _PostPageState extends State<PostPage> {
                 style: TextStyle(color: Colors.grey.shade700),
               ),
               const SizedBox(height: 24),
-
               TextFormField(
                 controller: titleController,
                 maxLength: 80,
@@ -662,9 +660,7 @@ class _PostPageState extends State<PostPage> {
                   return null;
                 },
               ),
-
               const SizedBox(height: 16),
-
               TextFormField(
                 controller: descriptionController,
                 maxLength: 500,
@@ -689,9 +685,7 @@ class _PostPageState extends State<PostPage> {
                   return null;
                 },
               ),
-
               const SizedBox(height: 16),
-
               DropdownButtonFormField<String>(
                 initialValue: selectedCategory,
                 decoration: const InputDecoration(
@@ -712,9 +706,7 @@ class _PostPageState extends State<PostPage> {
                   }
                 },
               ),
-
               const SizedBox(height: 16),
-
               TextFormField(
                 controller: authorController,
                 maxLength: 40,
@@ -737,9 +729,7 @@ class _PostPageState extends State<PostPage> {
                   return null;
                 },
               ),
-
               const SizedBox(height: 12),
-
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
@@ -793,6 +783,7 @@ class SavedIdeasPage extends StatelessWidget {
                   padding: const EdgeInsets.only(bottom: 12),
                   child: IdeaCard(
                     idea: savedIdeas[index],
+                    allIdeas: ideas,
                     onChanged: onChanged,
                   ),
                 );
@@ -825,7 +816,6 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   void editProfile() {
     final nameController = TextEditingController(text: widget.displayName);
-
     final bioController = TextEditingController(text: widget.bio);
 
     showDialog<void>(
@@ -910,7 +900,6 @@ class _ProfilePageState extends State<ProfilePage> {
         child: Column(
           children: [
             const SizedBox(height: 12),
-
             CircleAvatar(
               radius: 52,
               backgroundColor: Theme.of(context).colorScheme.primaryContainer,
@@ -920,17 +909,13 @@ class _ProfilePageState extends State<ProfilePage> {
                 color: Theme.of(context).colorScheme.primary,
               ),
             ),
-
             const SizedBox(height: 16),
-
             Text(
               widget.displayName,
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
-
             const SizedBox(height: 8),
-
             Text(
               widget.bio,
               textAlign: TextAlign.center,
@@ -939,17 +924,13 @@ class _ProfilePageState extends State<ProfilePage> {
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
-
             const SizedBox(height: 18),
-
             OutlinedButton.icon(
               onPressed: editProfile,
               icon: const Icon(Icons.edit),
               label: const Text('Edit Profile'),
             ),
-
             const SizedBox(height: 28),
-
             Align(
               alignment: Alignment.centerLeft,
               child: Text(
@@ -958,9 +939,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     ?.copyWith(fontWeight: FontWeight.bold),
               ),
             ),
-
             const SizedBox(height: 14),
-
             Row(
               children: [
                 Expanded(
@@ -988,9 +967,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
               ],
             ),
-
             const SizedBox(height: 24),
-
             Card(
               child: ListTile(
                 leading: const Icon(Icons.groups_outlined),
