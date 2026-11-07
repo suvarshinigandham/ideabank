@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import 'idea.dart';
@@ -8,6 +9,21 @@ void main() {
   runApp(const IdeaBankApp());
 }
 
+// APP SCROLL BEHAVIOR
+
+class AppScrollBehavior extends MaterialScrollBehavior {
+  const AppScrollBehavior();
+
+  @override
+  Set<PointerDeviceKind> get dragDevices => {
+    ...super.dragDevices,
+    PointerDeviceKind.mouse,
+    PointerDeviceKind.trackpad,
+  };
+}
+
+// MAIN APP
+
 class IdeaBankApp extends StatelessWidget {
   const IdeaBankApp({super.key});
 
@@ -17,12 +33,13 @@ class IdeaBankApp extends StatelessWidget {
       title: 'IdeaBank',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
+      scrollBehavior: const AppScrollBehavior(),
       home: const MainScreen(),
     );
   }
 }
 
-// MAIN SCREEN AND NAVIGATION
+// MAIN SCREEN AND RESPONSIVE NAVIGATION
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -37,21 +54,27 @@ class _MainScreenState extends State<MainScreen> {
   final List<Idea> ideas = [
     Idea(
       title: 'Smart Study Planner',
-      description: 'An intelligent planner that creates personalized study schedules based on subjects, deadlines, and available time.',
+      description:
+          'An intelligent planner that creates personalized study '
+          'schedules based on subjects, deadlines, and available time.',
       category: 'Education',
       author: 'Suvarshini',
       likes: 18,
     ),
     Idea(
       title: 'Campus Carpool',
-      description: 'Connect students travelling in the same direction to share rides and reduce travel costs.',
+      description:
+          'Connect students travelling in the same direction to '
+          'share rides and reduce travel costs.',
       category: 'Transportation',
       author: 'Rahul',
       likes: 24,
     ),
     Idea(
       title: 'Local Skill Exchange',
-      description: 'A platform where students exchange skills such as coding, design, communication, and photography.',
+      description:
+          'A platform where students exchange skills such as coding, '
+          'design, communication, and photography.',
       category: 'Technology',
       author: 'Priya',
       likes: 31,
@@ -79,7 +102,6 @@ class _MainScreenState extends State<MainScreen> {
       ProfilePage(ideas: ideas),
     ];
 
-    // COMMIT 18: RESPONSIVE NAVIGATION
     return LayoutBuilder(
       builder: (context, constraints) {
         final isWideScreen = constraints.maxWidth >= 700;
@@ -124,6 +146,7 @@ class _MainScreenState extends State<MainScreen> {
                     ),
                   ],
                 ),
+              if (isWideScreen) const VerticalDivider(width: 1),
               Expanded(
                 child: Center(
                   child: ConstrainedBox(
@@ -205,7 +228,8 @@ class HomePage extends StatelessWidget {
                 applicationVersion: '1.0.0',
                 children: const [
                   Text(
-                    'Discover ideas, share feedback, and collaborate with creative people.',
+                    'Discover ideas, share feedback, and collaborate '
+                    'with creative people.',
                   ),
                 ],
               );
@@ -242,7 +266,8 @@ class HomePage extends StatelessWidget {
                 ),
                 SizedBox(height: 10),
                 Text(
-                  'Share your ideas, get feedback, and find people who want to build something amazing.',
+                  'Share your ideas, get feedback, and find people '
+                  'who want to build something amazing.',
                   style: TextStyle(
                     fontSize: 15,
                     color: Colors.white,
@@ -280,7 +305,7 @@ class HomePage extends StatelessWidget {
   }
 }
 
-// EXPLORE PAGE WITH SEARCH, CATEGORY FILTERS AND SORTING
+// EXPLORE PAGE
 
 class ExplorePage extends StatefulWidget {
   final List<Idea> ideas;
@@ -381,9 +406,11 @@ class _ExplorePageState extends State<ExplorePage> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
             child: Row(
               children: [
+                const Icon(Icons.sort, size: 20),
+                const SizedBox(width: 8),
                 const Text(
                   'Sort by:',
                   style: TextStyle(fontWeight: FontWeight.w600),
@@ -392,6 +419,7 @@ class _ExplorePageState extends State<ExplorePage> {
                 Expanded(
                   child: DropdownButtonFormField<String>(
                     initialValue: selectedSort,
+                    isExpanded: true,
                     decoration: const InputDecoration(
                       contentPadding: EdgeInsets.symmetric(
                         horizontal: 12,
@@ -419,10 +447,11 @@ class _ExplorePageState extends State<ExplorePage> {
               ],
             ),
           ),
+          const SizedBox(height: 8),
           Expanded(
             child: filteredIdeas.isEmpty
                 ? const EmptyIdeasMessage(
-                    message: 'No ideas found. Try another search.',
+                    message: 'No matching ideas found. Try another search.',
                   )
                 : ListView.builder(
                     padding: const EdgeInsets.all(16),
@@ -444,7 +473,7 @@ class _ExplorePageState extends State<ExplorePage> {
 // POST IDEA PAGE
 
 class PostPage extends StatefulWidget {
-  final Function(Idea) onSubmit;
+  final ValueChanged<Idea> onSubmit;
 
   const PostPage({super.key, required this.onSubmit});
 
@@ -453,8 +482,7 @@ class PostPage extends StatefulWidget {
 }
 
 class _PostPageState extends State<PostPage> {
-  final _formKey = GlobalKey<FormState>();
-
+  final formKey = GlobalKey<FormState>();
   final titleController = TextEditingController();
   final descriptionController = TextEditingController();
   final authorController = TextEditingController();
@@ -464,27 +492,34 @@ class _PostPageState extends State<PostPage> {
   final List<String> categories = [
     'Technology',
     'Education',
-    'Healthcare',
-    'Environment',
     'Transportation',
+    'Health',
+    'Environment',
     'Business',
-    'Entertainment',
     'Other',
   ];
 
+  @override
+  void dispose() {
+    titleController.dispose();
+    descriptionController.dispose();
+    authorController.dispose();
+    super.dispose();
+  }
+
   void submitIdea() {
-    if (!_formKey.currentState!.validate()) {
+    if (!formKey.currentState!.validate()) {
       return;
     }
 
-    final newIdea = Idea(
+    final idea = Idea(
       title: titleController.text.trim(),
       description: descriptionController.text.trim(),
       category: selectedCategory,
       author: authorController.text.trim(),
     );
 
-    widget.onSubmit(newIdea);
+    widget.onSubmit(idea);
 
     titleController.clear();
     descriptionController.clear();
@@ -493,14 +528,8 @@ class _PostPageState extends State<PostPage> {
     setState(() {
       selectedCategory = 'Technology';
     });
-  }
 
-  @override
-  void dispose() {
-    titleController.dispose();
-    descriptionController.dispose();
-    authorController.dispose();
-    super.dispose();
+    formKey.currentState!.reset();
   }
 
   @override
@@ -515,104 +544,80 @@ class _PostPageState extends State<PostPage> {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Form(
-          key: _formKey,
+          key: formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(18),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(
-                      Icons.lightbulb_outline,
-                      size: 36,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    const SizedBox(height: 10),
-                    const Text(
-                      'Have an amazing idea?',
-                      style: TextStyle(
-                        fontSize: 21,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    const Text(
-                      'Share it with the community and get valuable feedback.',
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
               const Text(
-                'Idea Title',
-                style: TextStyle(fontWeight: FontWeight.w600),
+                'Have a great idea?',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
+              Text(
+                'Describe it and share it with the IdeaBank community.',
+                style: TextStyle(color: Colors.grey.shade700),
+              ),
+              const SizedBox(height: 24),
               TextFormField(
                 controller: titleController,
                 maxLength: 80,
+                textCapitalization: TextCapitalization.sentences,
                 decoration: const InputDecoration(
-                  hintText: 'Enter a short title for your idea',
-                  prefixIcon: Icon(Icons.title),
+                  labelText: 'Idea Title',
+                  hintText: 'Give your idea a name',
+                  prefixIcon: Icon(Icons.lightbulb_outline),
                   border: OutlineInputBorder(),
                 ),
                 validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
+                  final title = value?.trim() ?? '';
+
+                  if (title.isEmpty) {
                     return 'Please enter an idea title';
                   }
-                  if (value.trim().length < 3) {
-                    return 'Title must contain at least 3 characters';
+
+                  if (title.length < 5) {
+                    return 'Title must contain at least 5 characters';
                   }
+
                   return null;
                 },
               ),
               const SizedBox(height: 16),
-              const Text(
-                'Description',
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 8),
               TextFormField(
                 controller: descriptionController,
                 maxLength: 500,
                 maxLines: 5,
+                textCapitalization: TextCapitalization.sentences,
                 decoration: const InputDecoration(
-                  hintText: 'Explain your idea in detail...',
+                  labelText: 'Description',
+                  hintText: 'Explain your idea...',
                   alignLabelWithHint: true,
-                  prefixIcon: Icon(Icons.description_outlined),
                   border: OutlineInputBorder(),
                 ),
                 validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
+                  final description = value?.trim() ?? '';
+
+                  if (description.isEmpty) {
                     return 'Please describe your idea';
                   }
-                  if (value.trim().length < 10) {
-                    return 'Description must contain at least 10 characters';
+
+                  if (description.length < 20) {
+                    return 'Description must contain at least 20 characters';
                   }
+
                   return null;
                 },
               ),
               const SizedBox(height: 16),
-              const Text(
-                'Category',
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 8),
               DropdownButtonFormField<String>(
                 initialValue: selectedCategory,
                 decoration: const InputDecoration(
+                  labelText: 'Category',
                   prefixIcon: Icon(Icons.category_outlined),
                   border: OutlineInputBorder(),
                 ),
                 items: categories.map((category) {
-                  return DropdownMenuItem(
+                  return DropdownMenuItem<String>(
                     value: category,
                     child: Text(category),
                   );
@@ -626,26 +631,26 @@ class _PostPageState extends State<PostPage> {
                 },
               ),
               const SizedBox(height: 16),
-              const Text(
-                'Your Name',
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 8),
               TextFormField(
                 controller: authorController,
                 maxLength: 40,
+                textCapitalization: TextCapitalization.words,
                 decoration: const InputDecoration(
-                  hintText: 'Enter your name',
+                  labelText: 'Your Name',
                   prefixIcon: Icon(Icons.person_outline),
                   border: OutlineInputBorder(),
                 ),
                 validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
+                  final name = value?.trim() ?? '';
+
+                  if (name.isEmpty) {
                     return 'Please enter your name';
                   }
-                  if (value.trim().length < 2) {
+
+                  if (name.length < 2) {
                     return 'Name must contain at least 2 characters';
                   }
+
                   return null;
                 },
               ),
@@ -889,7 +894,8 @@ class _ProfilePageState extends State<ProfilePage> {
                     builder: (dialogContext) => AlertDialog(
                       title: const Text('IdeaBank Community'),
                       content: const Text(
-                        'Explore ideas, share feedback, and discover people to collaborate with.',
+                        'Explore ideas, share feedback, and discover '
+                        'people to collaborate with.',
                       ),
                       actions: [
                         TextButton(
@@ -944,7 +950,7 @@ class _ProfileStatCard extends StatelessWidget {
   }
 }
 
-// EMPTY STATE WIDGET
+// IMPROVED EMPTY STATE WIDGET
 
 class EmptyIdeasMessage extends StatelessWidget {
   final String message;
