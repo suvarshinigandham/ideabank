@@ -1,5 +1,8 @@
-import 'package:flutter/gestures.dart';
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'idea.dart';
 import 'idea_card.dart';
@@ -8,21 +11,6 @@ import 'app_theme.dart';
 void main() {
   runApp(const IdeaBankApp());
 }
-
-// APP SCROLL BEHAVIOR
-
-class AppScrollBehavior extends MaterialScrollBehavior {
-  const AppScrollBehavior();
-
-  @override
-  Set<PointerDeviceKind> get dragDevices => {
-    ...super.dragDevices,
-    PointerDeviceKind.mouse,
-    PointerDeviceKind.trackpad,
-  };
-}
-
-// MAIN APP
 
 class IdeaBankApp extends StatelessWidget {
   const IdeaBankApp({super.key});
@@ -39,7 +27,20 @@ class IdeaBankApp extends StatelessWidget {
   }
 }
 
-// MAIN SCREEN AND RESPONSIVE NAVIGATION
+// SUPPORT MOUSE AND TRACKPAD SCROLLING
+
+class AppScrollBehavior extends MaterialScrollBehavior {
+  const AppScrollBehavior();
+
+  @override
+  Set<PointerDeviceKind> get dragDevices => {
+    ...super.dragDevices,
+    PointerDeviceKind.mouse,
+    PointerDeviceKind.trackpad,
+  };
+}
+
+// MAIN SCREEN
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -50,36 +51,101 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int selectedIndex = 0;
+  bool isLoading = true;
+
+  String displayName = 'IdeaBank User';
+  String profileBio = 'Sharing ideas, learning, and building together.';
 
   final List<Idea> ideas = [
     Idea(
       title: 'Smart Study Planner',
-      description:
-          'An intelligent planner that creates personalized study '
-          'schedules based on subjects, deadlines, and available time.',
+      description: 'An intelligent planner that creates personalized study schedules based on subjects, deadlines, and available time.',
       category: 'Education',
       author: 'Suvarshini',
       likes: 18,
     ),
     Idea(
       title: 'Campus Carpool',
-      description:
-          'Connect students travelling in the same direction to '
-          'share rides and reduce travel costs.',
+      description: 'Connect students travelling in the same direction to share rides and reduce travel costs.',
       category: 'Transportation',
       author: 'Rahul',
       likes: 24,
     ),
     Idea(
       title: 'Local Skill Exchange',
-      description:
-          'A platform where students exchange skills such as coding, '
-          'design, communication, and photography.',
+      description: 'A platform where students exchange skills such as coding, design, communication, and photography.',
       category: 'Technology',
       author: 'Priya',
       likes: 31,
     ),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    loadData();
+  }
+
+  // LOAD SAVED IDEAS AND PROFILE
+
+  Future<void> loadData() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    final savedData = prefs.getString('ideabank_ideas');
+
+    if (savedData != null) {
+      try {
+        final List<dynamic> decodedData = jsonDecode(savedData);
+
+        final restoredIdeas = decodedData.map((item) {
+          return Idea.fromJson(Map<String, dynamic>.from(item));
+        }).toList();
+
+        ideas
+          ..clear()
+          ..addAll(restoredIdeas);
+      } catch (e) {
+        debugPrint('Error loading ideas: $e');
+      }
+    }
+
+    displayName = prefs.getString('ideabank_profile_name') ?? 'IdeaBank User';
+
+    profileBio =
+        prefs.getString('ideabank_profile_bio') ??
+        'Sharing ideas, learning, and building together.';
+
+    if (!mounted) return;
+
+    setState(() {
+      isLoading = false;
+    });
+
+    if (savedData == null) {
+      await saveData();
+    }
+  }
+
+  // SAVE IDEAS AND PROFILE
+
+  Future<void> saveData() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    final encodedData = jsonEncode(ideas.map((idea) => idea.toJson()).toList());
+
+    await prefs.setString('ideabank_ideas', encodedData);
+    await prefs.setString('ideabank_profile_name', displayName);
+    await prefs.setString('ideabank_profile_bio', profileBio);
+  }
+
+  // SAVE AFTER ANY IDEA CHANGE
+
+  void onIdeaChanged() {
+    setState(() {});
+    saveData();
+  }
+
+  // ADD A NEW IDEA
 
   void addIdea(Idea idea) {
     setState(() {
@@ -87,19 +153,41 @@ class _MainScreenState extends State<MainScreen> {
       selectedIndex = 0;
     });
 
+    saveData();
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Your idea was posted successfully!')),
     );
   }
 
+  // UPDATE PROFILE
+
+  void updateProfile(String name, String bio) {
+    setState(() {
+      displayName = name;
+      profileBio = bio;
+    });
+
+    saveData();
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     final pages = [
-      HomePage(ideas: ideas),
-      ExplorePage(ideas: ideas),
+      HomePage(ideas: ideas, onChanged: onIdeaChanged),
+      ExplorePage(ideas: ideas, onChanged: onIdeaChanged),
       PostPage(onSubmit: addIdea),
-      SavedIdeasPage(ideas: ideas),
-      ProfilePage(ideas: ideas),
+      SavedIdeasPage(ideas: ideas, onChanged: onIdeaChanged),
+      ProfilePage(
+        ideas: ideas,
+        displayName: displayName,
+        bio: profileBio,
+        onProfileChanged: updateProfile,
+      ),
     ];
 
     return LayoutBuilder(
@@ -146,7 +234,7 @@ class _MainScreenState extends State<MainScreen> {
                     ),
                   ],
                 ),
-              if (isWideScreen) const VerticalDivider(width: 1),
+
               Expanded(
                 child: Center(
                   child: ConstrainedBox(
@@ -157,6 +245,7 @@ class _MainScreenState extends State<MainScreen> {
               ),
             ],
           ),
+
           bottomNavigationBar: isWideScreen
               ? null
               : NavigationBar(
@@ -180,7 +269,7 @@ class _MainScreenState extends State<MainScreen> {
                     NavigationDestination(
                       icon: Icon(Icons.add_circle_outline),
                       selectedIcon: Icon(Icons.add_circle),
-                      label: 'Post Idea',
+                      label: 'Post',
                     ),
                     NavigationDestination(
                       icon: Icon(Icons.bookmark_border),
@@ -204,8 +293,9 @@ class _MainScreenState extends State<MainScreen> {
 
 class HomePage extends StatelessWidget {
   final List<Idea> ideas;
+  final VoidCallback onChanged;
 
-  const HomePage({super.key, required this.ideas});
+  const HomePage({super.key, required this.ideas, required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -228,8 +318,7 @@ class HomePage extends StatelessWidget {
                 applicationVersion: '1.0.0',
                 children: const [
                   Text(
-                    'Discover ideas, share feedback, and collaborate '
-                    'with creative people.',
+                    'Discover ideas, share feedback, and collaborate with creative people.',
                   ),
                 ],
               );
@@ -266,8 +355,7 @@ class HomePage extends StatelessWidget {
                 ),
                 SizedBox(height: 10),
                 Text(
-                  'Share your ideas, get feedback, and find people '
-                  'who want to build something amazing.',
+                  'Share your ideas, get feedback, and find people who want to build something amazing.',
                   style: TextStyle(
                     fontSize: 15,
                     color: Colors.white,
@@ -277,26 +365,33 @@ class HomePage extends StatelessWidget {
               ],
             ),
           ),
+
           const SizedBox(height: 26),
+
           const Text(
             'Discover Ideas',
             style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
           ),
+
           const SizedBox(height: 6),
+
           Text(
             'Explore what the community is thinking about.',
             style: TextStyle(color: Colors.grey.shade700),
           ),
+
           const SizedBox(height: 16),
+
           if (ideas.isEmpty)
             const EmptyIdeasMessage(
-              message: 'No ideas yet. Be the first to share one!',
+              title: 'No ideas yet',
+              message: 'Be the first to share an idea!',
             )
           else
             ...ideas.map(
               (idea) => Padding(
                 padding: const EdgeInsets.only(bottom: 12),
-                child: IdeaCard(idea: idea),
+                child: IdeaCard(idea: idea, onChanged: onChanged),
               ),
             ),
         ],
@@ -309,8 +404,9 @@ class HomePage extends StatelessWidget {
 
 class ExplorePage extends StatefulWidget {
   final List<Idea> ideas;
+  final VoidCallback onChanged;
 
-  const ExplorePage({super.key, required this.ideas});
+  const ExplorePage({super.key, required this.ideas, required this.onChanged});
 
   @override
   State<ExplorePage> createState() => _ExplorePageState();
@@ -366,15 +462,9 @@ class _ExplorePageState extends State<ExplorePage> {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
             child: TextField(
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 hintText: 'Search ideas, descriptions, or authors',
-                prefixIcon: const Icon(Icons.search),
-                filled: true,
-                fillColor: Colors.white,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
-                ),
+                prefixIcon: Icon(Icons.search),
               ),
               onChanged: (value) {
                 setState(() {
@@ -383,6 +473,7 @@ class _ExplorePageState extends State<ExplorePage> {
               },
             ),
           ),
+
           SizedBox(
             height: 48,
             child: ListView.separated(
@@ -405,6 +496,7 @@ class _ExplorePageState extends State<ExplorePage> {
               },
             ),
           ),
+
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
             child: Row(
@@ -425,7 +517,6 @@ class _ExplorePageState extends State<ExplorePage> {
                         horizontal: 12,
                         vertical: 8,
                       ),
-                      border: OutlineInputBorder(),
                     ),
                     items: const [
                       DropdownMenuItem(value: 'Newest', child: Text('Newest')),
@@ -447,11 +538,15 @@ class _ExplorePageState extends State<ExplorePage> {
               ],
             ),
           ),
+
           const SizedBox(height: 8),
+
           Expanded(
             child: filteredIdeas.isEmpty
                 ? const EmptyIdeasMessage(
-                    message: 'No matching ideas found. Try another search.',
+                    title: 'No matching ideas',
+                    message: 'Try another search or category.',
+                    icon: Icons.search_off,
                   )
                 : ListView.builder(
                     padding: const EdgeInsets.all(16),
@@ -459,7 +554,10 @@ class _ExplorePageState extends State<ExplorePage> {
                     itemBuilder: (context, index) {
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 12),
-                        child: IdeaCard(idea: filteredIdeas[index]),
+                        child: IdeaCard(
+                          idea: filteredIdeas[index],
+                          onChanged: widget.onChanged,
+                        ),
                       );
                     },
                   ),
@@ -483,6 +581,7 @@ class PostPage extends StatefulWidget {
 
 class _PostPageState extends State<PostPage> {
   final formKey = GlobalKey<FormState>();
+
   final titleController = TextEditingController();
   final descriptionController = TextEditingController();
   final authorController = TextEditingController();
@@ -552,12 +651,16 @@ class _PostPageState extends State<PostPage> {
                 'Have a great idea?',
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
+
               const SizedBox(height: 8),
+
               Text(
                 'Describe it and share it with the IdeaBank community.',
                 style: TextStyle(color: Colors.grey.shade700),
               ),
+
               const SizedBox(height: 24),
+
               TextFormField(
                 controller: titleController,
                 maxLength: 80,
@@ -566,7 +669,6 @@ class _PostPageState extends State<PostPage> {
                   labelText: 'Idea Title',
                   hintText: 'Give your idea a name',
                   prefixIcon: Icon(Icons.lightbulb_outline),
-                  border: OutlineInputBorder(),
                 ),
                 validator: (value) {
                   final title = value?.trim() ?? '';
@@ -582,7 +684,9 @@ class _PostPageState extends State<PostPage> {
                   return null;
                 },
               ),
+
               const SizedBox(height: 16),
+
               TextFormField(
                 controller: descriptionController,
                 maxLength: 500,
@@ -592,7 +696,6 @@ class _PostPageState extends State<PostPage> {
                   labelText: 'Description',
                   hintText: 'Explain your idea...',
                   alignLabelWithHint: true,
-                  border: OutlineInputBorder(),
                 ),
                 validator: (value) {
                   final description = value?.trim() ?? '';
@@ -608,13 +711,14 @@ class _PostPageState extends State<PostPage> {
                   return null;
                 },
               ),
+
               const SizedBox(height: 16),
+
               DropdownButtonFormField<String>(
                 initialValue: selectedCategory,
                 decoration: const InputDecoration(
                   labelText: 'Category',
                   prefixIcon: Icon(Icons.category_outlined),
-                  border: OutlineInputBorder(),
                 ),
                 items: categories.map((category) {
                   return DropdownMenuItem<String>(
@@ -630,7 +734,9 @@ class _PostPageState extends State<PostPage> {
                   }
                 },
               ),
+
               const SizedBox(height: 16),
+
               TextFormField(
                 controller: authorController,
                 maxLength: 40,
@@ -638,7 +744,6 @@ class _PostPageState extends State<PostPage> {
                 decoration: const InputDecoration(
                   labelText: 'Your Name',
                   prefixIcon: Icon(Icons.person_outline),
-                  border: OutlineInputBorder(),
                 ),
                 validator: (value) {
                   final name = value?.trim() ?? '';
@@ -654,16 +759,15 @@ class _PostPageState extends State<PostPage> {
                   return null;
                 },
               ),
+
               const SizedBox(height: 12),
+
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   onPressed: submitIdea,
                   icon: const Icon(Icons.send),
                   label: const Text('Publish Idea'),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
                 ),
               ),
             ],
@@ -678,8 +782,13 @@ class _PostPageState extends State<PostPage> {
 
 class SavedIdeasPage extends StatelessWidget {
   final List<Idea> ideas;
+  final VoidCallback onChanged;
 
-  const SavedIdeasPage({super.key, required this.ideas});
+  const SavedIdeasPage({
+    super.key,
+    required this.ideas,
+    required this.onChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -694,7 +803,9 @@ class SavedIdeasPage extends StatelessWidget {
       ),
       body: savedIdeas.isEmpty
           ? const EmptyIdeasMessage(
-              message: 'No saved ideas yet. Bookmark an idea to find it here.',
+              title: 'No saved ideas',
+              message: 'Bookmark an idea to find it here.',
+              icon: Icons.bookmark_border,
             )
           : ListView.builder(
               padding: const EdgeInsets.all(16),
@@ -702,7 +813,10 @@ class SavedIdeasPage extends StatelessWidget {
               itemBuilder: (context, index) {
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
-                  child: IdeaCard(idea: savedIdeas[index]),
+                  child: IdeaCard(
+                    idea: savedIdeas[index],
+                    onChanged: onChanged,
+                  ),
                 );
               },
             ),
@@ -714,20 +828,27 @@ class SavedIdeasPage extends StatelessWidget {
 
 class ProfilePage extends StatefulWidget {
   final List<Idea> ideas;
+  final String displayName;
+  final String bio;
+  final Function(String, String) onProfileChanged;
 
-  const ProfilePage({super.key, required this.ideas});
+  const ProfilePage({
+    super.key,
+    required this.ideas,
+    required this.displayName,
+    required this.bio,
+    required this.onProfileChanged,
+  });
 
   @override
   State<ProfilePage> createState() => _ProfilePageState();
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  String displayName = 'IdeaBank User';
-  String bio = 'Sharing ideas, learning, and building together.';
-
   void editProfile() {
-    final nameController = TextEditingController(text: displayName);
-    final bioController = TextEditingController(text: bio);
+    final nameController = TextEditingController(text: widget.displayName);
+
+    final bioController = TextEditingController(text: widget.bio);
 
     showDialog<void>(
       context: context,
@@ -744,10 +865,11 @@ class _ProfilePageState extends State<ProfilePage> {
                   decoration: const InputDecoration(
                     labelText: 'Display Name',
                     prefixIcon: Icon(Icons.person_outline),
-                    border: OutlineInputBorder(),
                   ),
                 ),
+
                 const SizedBox(height: 12),
+
                 TextField(
                   controller: bioController,
                   maxLength: 120,
@@ -755,7 +877,6 @@ class _ProfilePageState extends State<ProfilePage> {
                   decoration: const InputDecoration(
                     labelText: 'Bio',
                     prefixIcon: Icon(Icons.edit_note),
-                    border: OutlineInputBorder(),
                   ),
                 ),
               ],
@@ -763,17 +884,19 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
+              onPressed: () {
+                Navigator.pop(dialogContext);
+              },
               child: const Text('Cancel'),
             ),
+
             ElevatedButton(
               onPressed: () {
-                setState(() {
-                  if (nameController.text.trim().isNotEmpty) {
-                    displayName = nameController.text.trim();
-                  }
-                  bio = bioController.text.trim();
-                });
+                final name = nameController.text.trim();
+
+                if (name.isNotEmpty) {
+                  widget.onProfileChanged(name, bioController.text.trim());
+                }
 
                 Navigator.pop(dialogContext);
               },
@@ -812,6 +935,7 @@ class _ProfilePageState extends State<ProfilePage> {
         child: Column(
           children: [
             const SizedBox(height: 12),
+
             CircleAvatar(
               radius: 52,
               backgroundColor: Theme.of(context).colorScheme.primaryContainer,
@@ -821,28 +945,36 @@ class _ProfilePageState extends State<ProfilePage> {
                 color: Theme.of(context).colorScheme.primary,
               ),
             ),
+
             const SizedBox(height: 16),
+
             Text(
-              displayName,
+              widget.displayName,
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
+
             const SizedBox(height: 8),
+
             Text(
-              bio,
+              widget.bio,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 15,
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
+
             const SizedBox(height: 18),
+
             OutlinedButton.icon(
               onPressed: editProfile,
               icon: const Icon(Icons.edit),
               label: const Text('Edit Profile'),
             ),
+
             const SizedBox(height: 28),
+
             Align(
               alignment: Alignment.centerLeft,
               child: Text(
@@ -851,7 +983,9 @@ class _ProfilePageState extends State<ProfilePage> {
                     ?.copyWith(fontWeight: FontWeight.bold),
               ),
             ),
+
             const SizedBox(height: 14),
+
             Row(
               children: [
                 Expanded(
@@ -861,7 +995,9 @@ class _ProfilePageState extends State<ProfilePage> {
                     value: totalIdeas.toString(),
                   ),
                 ),
+
                 const SizedBox(width: 10),
+
                 Expanded(
                   child: _ProfileStatCard(
                     icon: Icons.favorite_outline,
@@ -869,7 +1005,9 @@ class _ProfilePageState extends State<ProfilePage> {
                     value: totalLikes.toString(),
                   ),
                 ),
+
                 const SizedBox(width: 10),
+
                 Expanded(
                   child: _ProfileStatCard(
                     icon: Icons.bookmark_outline,
@@ -879,7 +1017,9 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
               ],
             ),
+
             const SizedBox(height: 24),
+
             Card(
               child: ListTile(
                 leading: const Icon(Icons.groups_outlined),
@@ -894,12 +1034,13 @@ class _ProfilePageState extends State<ProfilePage> {
                     builder: (dialogContext) => AlertDialog(
                       title: const Text('IdeaBank Community'),
                       content: const Text(
-                        'Explore ideas, share feedback, and discover '
-                        'people to collaborate with.',
+                        'Explore ideas, share feedback, and discover people to collaborate with.',
                       ),
                       actions: [
                         TextButton(
-                          onPressed: () => Navigator.pop(dialogContext),
+                          onPressed: () {
+                            Navigator.pop(dialogContext);
+                          },
                           child: const Text('Close'),
                         ),
                       ],
@@ -936,12 +1077,16 @@ class _ProfileStatCard extends StatelessWidget {
         child: Column(
           children: [
             Icon(icon, size: 27, color: Theme.of(context).colorScheme.primary),
+
             const SizedBox(height: 10),
+
             Text(
               value,
               style: const TextStyle(fontSize: 21, fontWeight: FontWeight.bold),
             ),
+
             const SizedBox(height: 4),
+
             Text(label, style: const TextStyle(fontSize: 12)),
           ],
         ),
@@ -950,7 +1095,7 @@ class _ProfileStatCard extends StatelessWidget {
   }
 }
 
-// IMPROVED EMPTY STATE WIDGET
+// EMPTY STATE WIDGET
 
 class EmptyIdeasMessage extends StatelessWidget {
   final String message;
@@ -982,7 +1127,9 @@ class EmptyIdeasMessage extends StatelessWidget {
               ),
               child: Icon(icon, size: 55, color: theme.colorScheme.primary),
             ),
+
             const SizedBox(height: 22),
+
             Text(
               title,
               textAlign: TextAlign.center,
@@ -990,7 +1137,9 @@ class EmptyIdeasMessage extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
+
             const SizedBox(height: 10),
+
             Text(
               message,
               textAlign: TextAlign.center,
@@ -999,7 +1148,9 @@ class EmptyIdeasMessage extends StatelessWidget {
                 height: 1.5,
               ),
             ),
+
             const SizedBox(height: 18),
+
             Text(
               'Keep exploring and sharing your ideas!',
               textAlign: TextAlign.center,

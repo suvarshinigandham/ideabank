@@ -18,4 +18,30 @@ class Idea {
     this.saved = false,
     List<String>? comments,
   }) : comments = comments ?? [];
+
+  Map<String, dynamic> toJson() {
+    return {
+      'title': title,
+      'description': description,
+      'category': category,
+      'author': author,
+      'likes': likes,
+      'liked': liked,
+      'saved': saved,
+      'comments': comments,
+    };
+  }
+
+  factory Idea.fromJson(Map<String, dynamic> json) {
+    return Idea(
+      title: json['title'] ?? '',
+      description: json['description'] ?? '',
+      category: json['category'] ?? 'Other',
+      author: json['author'] ?? 'Unknown',
+      likes: json['likes'] ?? 0,
+      liked: json['liked'] ?? false,
+      saved: json['saved'] ?? false,
+      comments: List<String>.from(json['comments'] ?? []),
+    );
+  }
 }
