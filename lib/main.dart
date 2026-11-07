@@ -1,7 +1,8 @@
-
 import 'package:flutter/material.dart';
+
 import 'idea.dart';
 import 'idea_card.dart';
+import 'app_theme.dart';
 
 void main() {
   runApp(const IdeaBankApp());
@@ -15,25 +16,7 @@ class IdeaBankApp extends StatelessWidget {
     return MaterialApp(
       title: 'IdeaBank',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF6750A4),
-        ),
-        scaffoldBackgroundColor: const Color(0xFFF8F7FC),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFFF8F7FC),
-          elevation: 0,
-          centerTitle: false,
-        ),
-        cardTheme: CardThemeData(
-          color: Colors.white,
-          elevation: 1,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-        ),
-      ),
+      theme: AppTheme.lightTheme,
       home: const MainScreen(),
     );
   }
@@ -54,27 +37,21 @@ class _MainScreenState extends State<MainScreen> {
   final List<Idea> ideas = [
     Idea(
       title: 'Smart Study Planner',
-      description:
-          'An intelligent planner that creates personalized study '
-          'schedules based on subjects, deadlines, and available time.',
+      description: 'An intelligent planner that creates personalized study schedules based on subjects, deadlines, and available time.',
       category: 'Education',
       author: 'Suvarshini',
       likes: 18,
     ),
     Idea(
       title: 'Campus Carpool',
-      description:
-          'Connect students travelling in the same direction to '
-          'share rides and reduce travel costs.',
+      description: 'Connect students travelling in the same direction to share rides and reduce travel costs.',
       category: 'Transportation',
       author: 'Rahul',
       likes: 24,
     ),
     Idea(
       title: 'Local Skill Exchange',
-      description:
-          'A platform where students exchange skills such as coding, '
-          'design, communication, and photography.',
+      description: 'A platform where students exchange skills such as coding, design, communication, and photography.',
       category: 'Technology',
       author: 'Priya',
       likes: 31,
@@ -88,9 +65,7 @@ class _MainScreenState extends State<MainScreen> {
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Your idea was posted successfully!'),
-      ),
+      const SnackBar(content: Text('Your idea was posted successfully!')),
     );
   }
 
@@ -105,10 +80,7 @@ class _MainScreenState extends State<MainScreen> {
     ];
 
     return Scaffold(
-      body: IndexedStack(
-        index: selectedIndex,
-        children: pages,
-      ),
+      body: IndexedStack(index: selectedIndex, children: pages),
       bottomNavigationBar: NavigationBar(
         selectedIndex: selectedIndex,
         onDestinationSelected: (index) {
@@ -161,15 +133,9 @@ class HomePage extends StatelessWidget {
       appBar: AppBar(
         title: const Row(
           children: [
-            Icon(
-              Icons.lightbulb,
-              color: Color(0xFF6750A4),
-            ),
+            Icon(Icons.lightbulb, color: Color(0xFF6750A4)),
             SizedBox(width: 8),
-            Text(
-              'IdeaBank',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
+            Text('IdeaBank', style: TextStyle(fontWeight: FontWeight.bold)),
           ],
         ),
         actions: [
@@ -182,8 +148,7 @@ class HomePage extends StatelessWidget {
                 applicationVersion: '1.0.0',
                 children: const [
                   Text(
-                    'Discover ideas, share feedback, and collaborate '
-                    'with creative people.',
+                    'Discover ideas, share feedback, and collaborate with creative people.',
                   ),
                 ],
               );
@@ -199,10 +164,7 @@ class HomePage extends StatelessWidget {
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [
-                  Color(0xFF6750A4),
-                  Color(0xFF9582D4),
-                ],
+                colors: [Color(0xFF6750A4), Color(0xFF9582D4)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -211,11 +173,7 @@ class HomePage extends StatelessWidget {
             child: const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
-                  Icons.lightbulb_outline,
-                  size: 42,
-                  color: Colors.white,
-                ),
+                Icon(Icons.lightbulb_outline, size: 42, color: Colors.white),
                 SizedBox(height: 14),
                 Text(
                   'Every great idea starts somewhere.',
@@ -227,8 +185,7 @@ class HomePage extends StatelessWidget {
                 ),
                 SizedBox(height: 10),
                 Text(
-                  'Share your ideas, get feedback, and find people '
-                  'who want to build something amazing.',
+                  'Share your ideas, get feedback, and find people who want to build something amazing.',
                   style: TextStyle(
                     fontSize: 15,
                     color: Colors.white,
@@ -241,10 +198,7 @@ class HomePage extends StatelessWidget {
           const SizedBox(height: 26),
           const Text(
             'Discover Ideas',
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 6),
           Text(
@@ -301,28 +255,20 @@ class _ExplorePageState extends State<ExplorePage> {
           idea.author.toLowerCase().contains(query);
 
       final matchesCategory =
-          selectedCategory == 'All' ||
-          idea.category == selectedCategory;
+          selectedCategory == 'All' || idea.category == selectedCategory;
 
       return matchesSearch && matchesCategory;
     }).toList();
 
-    // New ideas are inserted at index 0.
     if (selectedSort == 'Most Liked') {
-      filteredIdeas.sort(
-        (a, b) => b.likes.compareTo(a.likes),
-      );
+      filteredIdeas.sort((a, b) => b.likes.compareTo(a.likes));
     } else if (selectedSort == 'Oldest') {
       filteredIdeas.sort(
-        (a, b) => widget.ideas.indexOf(b).compareTo(
-              widget.ideas.indexOf(a),
-            ),
+        (a, b) => widget.ideas.indexOf(b).compareTo(widget.ideas.indexOf(a)),
       );
     } else {
       filteredIdeas.sort(
-        (a, b) => widget.ideas.indexOf(a).compareTo(
-              widget.ideas.indexOf(b),
-            ),
+        (a, b) => widget.ideas.indexOf(a).compareTo(widget.ideas.indexOf(b)),
       );
     }
 
@@ -378,11 +324,9 @@ class _ExplorePageState extends State<ExplorePage> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
             child: Row(
               children: [
-                const Icon(Icons.sort, size: 20),
-                const SizedBox(width: 8),
                 const Text(
                   'Sort by:',
                   style: TextStyle(fontWeight: FontWeight.w600),
@@ -391,7 +335,6 @@ class _ExplorePageState extends State<ExplorePage> {
                 Expanded(
                   child: DropdownButtonFormField<String>(
                     initialValue: selectedSort,
-                    isExpanded: true,
                     decoration: const InputDecoration(
                       contentPadding: EdgeInsets.symmetric(
                         horizontal: 12,
@@ -400,14 +343,8 @@ class _ExplorePageState extends State<ExplorePage> {
                       border: OutlineInputBorder(),
                     ),
                     items: const [
-                      DropdownMenuItem(
-                        value: 'Newest',
-                        child: Text('Newest'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'Oldest',
-                        child: Text('Oldest'),
-                      ),
+                      DropdownMenuItem(value: 'Newest', child: Text('Newest')),
+                      DropdownMenuItem(value: 'Oldest', child: Text('Oldest')),
                       DropdownMenuItem(
                         value: 'Most Liked',
                         child: Text('Most Liked'),
@@ -425,12 +362,10 @@ class _ExplorePageState extends State<ExplorePage> {
               ],
             ),
           ),
-          const SizedBox(height: 8),
           Expanded(
             child: filteredIdeas.isEmpty
                 ? const EmptyIdeasMessage(
-                    message:
-                        'No matching ideas found. Try another search.',
+                    message: 'No ideas found. Try another search.',
                   )
                 : ListView.builder(
                     padding: const EdgeInsets.all(16),
@@ -448,11 +383,10 @@ class _ExplorePageState extends State<ExplorePage> {
     );
   }
 }
-
 // POST IDEA PAGE
 
 class PostPage extends StatefulWidget {
-  final ValueChanged<Idea> onSubmit;
+  final Function(Idea) onSubmit;
 
   const PostPage({super.key, required this.onSubmit});
 
@@ -461,7 +395,8 @@ class PostPage extends StatefulWidget {
 }
 
 class _PostPageState extends State<PostPage> {
-  final formKey = GlobalKey<FormState>();
+  final _formKey = GlobalKey<FormState>();
+
   final titleController = TextEditingController();
   final descriptionController = TextEditingController();
   final authorController = TextEditingController();
@@ -471,32 +406,27 @@ class _PostPageState extends State<PostPage> {
   final List<String> categories = [
     'Technology',
     'Education',
-    'Transportation',
-    'Health',
+    'Healthcare',
     'Environment',
+    'Transportation',
     'Business',
+    'Entertainment',
     'Other',
   ];
 
-  @override
-  void dispose() {
-    titleController.dispose();
-    descriptionController.dispose();
-    authorController.dispose();
-    super.dispose();
-  }
-
   void submitIdea() {
-    if (!formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
 
-    final idea = Idea(
+    final newIdea = Idea(
       title: titleController.text.trim(),
       description: descriptionController.text.trim(),
       category: selectedCategory,
       author: authorController.text.trim(),
     );
 
-    widget.onSubmit(idea);
+    widget.onSubmit(newIdea);
 
     titleController.clear();
     descriptionController.clear();
@@ -505,6 +435,14 @@ class _PostPageState extends State<PostPage> {
     setState(() {
       selectedCategory = 'Technology';
     });
+  }
+
+  @override
+  void dispose() {
+    titleController.dispose();
+    descriptionController.dispose();
+    authorController.dispose();
+    super.dispose();
   }
 
   @override
@@ -519,67 +457,107 @@ class _PostPageState extends State<PostPage> {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Form(
-          key: formKey,
+          key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Have a great idea?',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.lightbulb_outline,
+                      size: 36,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    const SizedBox(height: 10),
+                    const Text(
+                      'Have an amazing idea?',
+                      style: TextStyle(
+                        fontSize: 21,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      'Share it with the community and get valuable feedback.',
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 8),
-              Text(
-                'Describe it and share it with the IdeaBank community.',
-                style: TextStyle(color: Colors.grey.shade700),
-              ),
               const SizedBox(height: 24),
+
+              const Text(
+                'Idea Title',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 8),
               TextFormField(
                 controller: titleController,
                 maxLength: 80,
                 decoration: const InputDecoration(
-                  labelText: 'Idea Title',
-                  hintText: 'Give your idea a name',
-                  prefixIcon: Icon(Icons.lightbulb_outline),
+                  hintText: 'Enter a short title for your idea',
+                  prefixIcon: Icon(Icons.title),
                   border: OutlineInputBorder(),
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return 'Please enter an idea title';
                   }
+                  if (value.trim().length < 3) {
+                    return 'Title must contain at least 3 characters';
+                  }
                   return null;
                 },
               ),
               const SizedBox(height: 16),
+
+              const Text(
+                'Description',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 8),
               TextFormField(
                 controller: descriptionController,
                 maxLength: 500,
                 maxLines: 5,
                 decoration: const InputDecoration(
-                  labelText: 'Description',
-                  hintText: 'Explain your idea...',
+                  hintText: 'Explain your idea in detail...',
                   alignLabelWithHint: true,
+                  prefixIcon: Icon(Icons.description_outlined),
                   border: OutlineInputBorder(),
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return 'Please describe your idea';
                   }
+                  if (value.trim().length < 10) {
+                    return 'Description must contain at least 10 characters';
+                  }
                   return null;
                 },
               ),
               const SizedBox(height: 16),
+
+              const Text(
+                'Category',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 8),
               DropdownButtonFormField<String>(
                 initialValue: selectedCategory,
                 decoration: const InputDecoration(
-                  labelText: 'Category',
                   prefixIcon: Icon(Icons.category_outlined),
                   border: OutlineInputBorder(),
                 ),
                 items: categories.map((category) {
-                  return DropdownMenuItem<String>(
+                  return DropdownMenuItem(
                     value: category,
                     child: Text(category),
                   );
@@ -593,11 +571,17 @@ class _PostPageState extends State<PostPage> {
                 },
               ),
               const SizedBox(height: 16),
+
+              const Text(
+                'Your Name',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 8),
               TextFormField(
                 controller: authorController,
                 maxLength: 40,
                 decoration: const InputDecoration(
-                  labelText: 'Your Name',
+                  hintText: 'Enter your name',
                   prefixIcon: Icon(Icons.person_outline),
                   border: OutlineInputBorder(),
                 ),
@@ -605,10 +589,14 @@ class _PostPageState extends State<PostPage> {
                   if (value == null || value.trim().isEmpty) {
                     return 'Please enter your name';
                   }
+                  if (value.trim().length < 2) {
+                    return 'Name must contain at least 2 characters';
+                  }
                   return null;
                 },
               ),
               const SizedBox(height: 12),
+
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
@@ -627,7 +615,6 @@ class _PostPageState extends State<PostPage> {
     );
   }
 }
-
 // SAVED IDEAS PAGE
 
 class SavedIdeasPage extends StatelessWidget {
@@ -648,8 +635,7 @@ class SavedIdeasPage extends StatelessWidget {
       ),
       body: savedIdeas.isEmpty
           ? const EmptyIdeasMessage(
-              message:
-                  'No saved ideas yet. Bookmark an idea to find it here.',
+              message: 'No saved ideas yet. Bookmark an idea to find it here.',
             )
           : ListView.builder(
               padding: const EdgeInsets.all(16),
@@ -746,10 +732,12 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     final totalIdeas = widget.ideas.length;
+
     final totalLikes = widget.ideas.fold<int>(
       0,
       (sum, idea) => sum + idea.likes,
     );
+
     final savedIdeas = widget.ideas.where((idea) => idea.saved).length;
 
     return Scaffold(
@@ -767,8 +755,7 @@ class _ProfilePageState extends State<ProfilePage> {
             const SizedBox(height: 12),
             CircleAvatar(
               radius: 52,
-              backgroundColor:
-                  Theme.of(context).colorScheme.primaryContainer,
+              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
               child: Icon(
                 Icons.person,
                 size: 58,
@@ -779,10 +766,7 @@ class _ProfilePageState extends State<ProfilePage> {
             Text(
               displayName,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
@@ -804,9 +788,8 @@ class _ProfilePageState extends State<ProfilePage> {
               alignment: Alignment.centerLeft,
               child: Text(
                 'Your Activity',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: Theme.of(context).textTheme.titleLarge
+                    ?.copyWith(fontWeight: FontWeight.bold),
               ),
             ),
             const SizedBox(height: 14),
@@ -852,8 +835,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     builder: (dialogContext) => AlertDialog(
                       title: const Text('IdeaBank Community'),
                       content: const Text(
-                        'Explore ideas, share feedback, and discover '
-                        'people to collaborate with.',
+                        'Explore ideas, share feedback, and discover people to collaborate with.',
                       ),
                       actions: [
                         TextButton(
@@ -872,6 +854,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 }
+// PROFILE STATISTICS CARD
 
 class _ProfileStatCard extends StatelessWidget {
   final IconData icon;
@@ -888,30 +871,17 @@ class _ProfileStatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-          vertical: 18,
-          horizontal: 6,
-        ),
+        padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 6),
         child: Column(
           children: [
-            Icon(
-              icon,
-              size: 27,
-              color: Theme.of(context).colorScheme.primary,
-            ),
+            Icon(icon, size: 27, color: Theme.of(context).colorScheme.primary),
             const SizedBox(height: 10),
             Text(
               value,
-              style: const TextStyle(
-                fontSize: 21,
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontSize: 21, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
-            Text(
-              label,
-              style: const TextStyle(fontSize: 12),
-            ),
+            Text(label, style: const TextStyle(fontSize: 12)),
           ],
         ),
       ),
@@ -924,10 +894,7 @@ class _ProfileStatCard extends StatelessWidget {
 class EmptyIdeasMessage extends StatelessWidget {
   final String message;
 
-  const EmptyIdeasMessage({
-    super.key,
-    required this.message,
-  });
+  const EmptyIdeasMessage({super.key, required this.message});
 
   @override
   Widget build(BuildContext context) {
@@ -946,10 +913,7 @@ class EmptyIdeasMessage extends StatelessWidget {
             Text(
               message,
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey.shade700,
-              ),
+              style: TextStyle(fontSize: 16, color: Colors.grey.shade700),
             ),
           ],
         ),
